@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pixel Art Maker!</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/css?family=Monoton|Roboto" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+     <script src="html2canvas.min.js"></script>
+</head>
+<body>
+    <div class="alert">
+    </div>
+    <h1 class="hide" id="header">Lab: Pixel Art Maker</h1>
+
+    <div class="box">
+        <h2>Choose Grid Size</h2>
+        <form id="sizePicker">
+            <label for="input_height"> Grid Height:
+                <input type="number" id="input_height" name="height" min="1" value="1">
+            </label>
+            <label for="input_width"> Grid Width:
+                <input type="number" id="input_width" name="width" min="1" value="1">
+            </label>
+            <button id="submit" class="btn-green" type="submit">Build</button>
+            <p class="hide">Click Rebuild to reset grid</p>
+        </form>
+
+        <h2>Pick A Color</h2>
+        <input type="color" id="colorPicker"  list="colors">
+        <datalist id=colors>
+            <option>#000000</option>
+            <option>#ff0000</option>
+            <option>#00ff00</option>
+            <option>#0000ff</option>
+        </datalist>
+        <h2>How To</h2>
+        <p>Left click draws/Hold to draw continuously</p>
+        <p>Right click removes/Hold to remove continuously</p>
+        <p>Hold Shift key draws only on white spaces.</p>
+        <p>Hold F key to enter fill mode.</p>
+        <button id="save-button" class="btn-blue">
+        Grid to Image
+        </button>
+        <div id="gridImg" class="hide" >
+            <img src="" id="img" />
+            <button id="hideImage" class="btn-red">
+                Hide Image
+            </button>
+        </div>
+
+    </div>
+    <h2 class="hide" id="canvasHeader">Design Canvas</h2>
+    <table id="pixel_canvas"><tbody></tbody></table>
+    <script src="fit-text.js"></script>
+    <script src="designs.js"></script>
+</body>
+</html>

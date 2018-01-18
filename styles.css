@@ -1,0 +1,87 @@
+body {
+    font-family: 'Roboto', sans-serif;
+    text-align: center;
+}
+.alert {
+    position: fixed;
+    width: 60%;
+    top: 10px;
+    text-align: center;
+    background-color: rgba(255, 0, 0, 0.4);
+    border-radius: 6px;
+    font-size: 16px;
+}
+h1 {
+    font-family: Monoton;
+    font-size: 70px;
+    margin: 0.2em;
+}
+h2 {
+    margin: 1em 0 0.25em;
+}
+h2:first-of-type {
+    margin-top: 0.5em;
+}
+form#sizePicker {
+    margin: 0 15px 0 15px;
+}
+label {
+    display: block;
+    margin-bottom: 10px;
+}
+.box {
+    display: inline-block;
+    border-radius: 6px;
+    box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.14);
+}
+table, tr, td {
+    border: 1px solid black;
+}
+table {
+    border-collapse: collapse;
+    margin: 0 auto;
+    box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.14);
+}
+tr {
+    height: 20px;
+}
+td {
+    width: 20px;
+}
+input[type=number] {
+    width: 6em;
+    border: 1px solid #ced4da;
+    border-radius: 3px;
+    line-height: 1.5;
+    padding-left: 2px;
+    transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+}
+img {
+    display: none;
+}
+.hide {
+    display: none;
+}
+button {
+    display: block;
+    margin: auto;
+    cursor: pointer;
+    margin-bottom: 10px;
+    border: none;
+    height: 25px;
+    width: 125px;
+    border-radius: 3px;
+    box-shadow: 1px 1px 3px 1px rgba(0, 0, 0, 0.6);
+}
+.btn-blue {
+    background: #2196f3;
+    color: #ffffff;
+}
+.btn-red {
+    background: #F44336;
+    color: #ffffff;
+}
+.btn-green {
+    background: #4CAF50;
+    color: #ffffff;
+}
