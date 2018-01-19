@@ -57,6 +57,8 @@ input[type=number] {
 }
 img {
     display: none;
+    max-height: 100vh;
+    max-width: 100vw;
 }
 .hide {
     display: none;
