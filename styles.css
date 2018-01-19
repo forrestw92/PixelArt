@@ -54,7 +54,6 @@ input[type=number] {
     border-radius: 3px;
     line-height: 1.5;
     padding-left: 2px;
-    transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
 }
 img {
     display: none;
@@ -64,6 +63,7 @@ img {
 }
 button {
     display: block;
+    outline: none;
     margin: auto;
     cursor: pointer;
     margin-bottom: 10px;
@@ -71,7 +71,10 @@ button {
     height: 25px;
     width: 125px;
     border-radius: 3px;
-    box-shadow: 1px 1px 3px 1px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 2px 2px 0 rgba(153,153,153,0.14), 0 3px 1px -2px rgba(153,153,153,0.2), 0 1px 5px 0 rgba(153,153,153,0.12)
+}
+button:hover{
+    box-shadow: 0 5px 11px 0 rgba(0,0,0,.18), 0 4px 15px 0 rgba(0,0,0,.15);
 }
 .btn-blue {
     background: #2196f3;
