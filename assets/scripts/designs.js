@@ -128,7 +128,6 @@ var pixelGrid = {
      * @description Fills color of all same colored cells
      */
     fillColor: function(cellColor) {
-        //loop table and find all table cells
         $(this.tableContent).find("td").each(function(i, row) {
             console.log(cellColor + ":::::" + $(row).css("backgroundColor"))
             if ($(row).css("backgroundColor") === cellColor) {
@@ -398,8 +397,8 @@ $(pixelGrid.tableContent).on("contextmenu", "td", function(e) {
  */
 $(function() {
     if (pixelGrid.checkSave()) $("#load-save").removeClass("hide");
-    $("#input_width").val(Math.floor($(window).width() / 20)); //Sets the default val to the width of the window viewport /20(width of cells) and rounds down
-    $("#input_height").val(Math.floor($(window).height() / 20)); //Sets the default val to the height of the window viewport /20(height of cells) and rounds down
-    $("#input_width").attr("max", Math.floor($(window).width() / 20)); //Sets the max value for the width inputbox
-    $("#input_height").attr("max", Math.floor($(window).height() / 20)); //Sets the max value for the height inputbox
+    $("#input_width").val(Math.floor($(window).width() / 20));
+    $("#input_height").val(Math.floor($(window).height() / 20));
+    $("#input_width").attr("max", Math.floor($(window).width() / 20));
+    $("#input_height").attr("max", Math.floor($(window).height() / 20));
 });
