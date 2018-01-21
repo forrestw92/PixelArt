@@ -1,0 +1,176 @@
+body {
+    font-family: 'Roboto', sans-serif;
+    text-align: center;
+}
+.hide {
+    display: none;
+}
+h1 {
+    font-family: Monoton;
+    font-size: 70px;
+    margin: 0.2em;
+}
+h2 {
+    margin: 1em 0 0.25em;
+}
+h2:first-of-type {
+    margin-top: 0.5em;
+}
+p {
+    padding: 0 10px 0 10px;
+}
+form#sizePicker {
+    margin: 0 15px 0 15px;
+}
+label {
+    display: block;
+    margin-bottom: 10px;
+}
+.box {
+    display: inline-block;
+    border-radius: 6px;
+    box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.14);
+}
+img {
+    display: none;
+    max-height: 100vh;
+    max-width: 100vw;
+}
+.grid {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: white;
+}
+table, tr, td {
+    border: 1px solid black;
+}
+table {
+    border-collapse: collapse;
+    margin: 0 auto;
+    box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.14);
+}
+tr {
+    height: 20px;
+}
+td {
+    transition: background .2s linear;
+    width: 20px;
+}
+input[type=number] {
+    width: 6em;
+    border: 1px solid #ced4da;
+    border-radius: 3px;
+    line-height: 1.5;
+    padding-left: 2px;
+}
+.selectBox {
+    width: 315px;
+    height: 40px;
+    border-radius: 4px;
+    background-color: rgba(240, 240, 240, 0.8);
+    border: 1px solid rgba(0, 0, 0, 0.5);
+    position: fixed;
+    bottom: 10px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    margin: 0 auto;
+    padding: 0 10px 0 10px;
+}
+.selectItem {
+    position: relative;
+    top: 50%;
+    display: inline-block;
+    transform: translateY(-50%);
+    width: 40px;
+    font-size: 25px;
+    color: white;
+    cursor: pointer;
+    border-radius: 5px;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+.selectItem:hover {
+    box-shadow: 0 5px 11px 0 rgba(0, 0, 0, .18), 0 4px 15px 0 rgba(0, 0, 0, .15);
+}
+.selectItem#eraser {
+    color: #f49b95;
+}
+.selectItem#eraser:hover {
+    box-shadow: 0 5px 11px 0 rgba(244, 155, 149, .18), 0 4px 15px 0 rgba(244, 155, 149, .18);
+}
+.selectItem#magic {
+    color: gold;
+}
+.selectItem#magic:hover {
+    box-shadow: 0 5px 11px 0 rgba(255, 215, 0, .18), 0 4px 15px 0 rgba(255, 215, 0, .18);
+}
+.selectItem#save-button {
+    color: #03A9F4;
+}
+.selectItem#save-button:hover {
+    box-shadow: 0 5px 11px 0 rgba(3, 169, 244, .18), 0 4px 15px 0 rgba(3, 169, 244, .18);
+}
+.selectItem#close {
+    color: #F44336;
+}
+.selectItem#close:hover {
+    box-shadow: 0 5px 11px 0 rgba(183, 28, 28, .18), 0 4px 15px 0 rgba(183, 28, 28, .18);
+}
+.alert {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+    margin-left: -10px;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    border-radius: 3px;
+}
+.alert span {
+    display: block;
+    position: relative;
+    top: 50%;
+    transform: translateY(-50%);
+}
+button {
+    display: block;
+    color: #ffffff;
+    outline: none;
+    margin: auto;
+    cursor: pointer;
+    margin-bottom: 10px;
+    border: none;
+    height: 25px;
+    width: 125px;
+    border-radius: 3px;
+    box-shadow: 0 2px 2px 0 rgba(153, 153, 153, 0.14), 0 3px 1px -2px rgba(153, 153, 153, 0.2), 0 1px 5px 0 rgba(153, 153, 153, 0.12);
+}
+button:hover {
+    box-shadow: 0 5px 11px 0 rgba(0, 0, 0, .18), 0 4px 15px 0 rgba(0, 0, 0, .15);
+}
+button.btn-blue {
+    box-shadow: 0 2px 2px 0 rgba(33, 150, 243, 0.14), 0 3px 1px -2px rgba(33, 150, 243, 0.2), 0 1px 5px 0 rgba(33, 150, 243, 0.12);
+    background: #2196f3;
+
+}
+button.btn-blue:hover {
+    box-shadow: 0 5px 11px 0 rgba(13, 71, 161, .14), 0 4px 15px 0 rgba(13, 71, 161, .15);
+}
+button.btn-green {
+    box-shadow: 0 2px 2px 0 rgba(76, 175, 80, 0.14), 0 3px 1px -2px rgba(76, 175, 80, 0.2), 0 1px 5px 0 rgba(76, 175, 80, 0.12);
+    background: #4CAF50;
+}
+button.btn-green:hover {
+    box-shadow: 0 5px 11px 0 rgba(27, 94, 32, .14), 0 4px 15px 0 rgba(27, 94, 32, .15);
+}
+button.btn-purple{
+    box-shadow: 0 2px 2px 0 rgba(156, 39, 176, 0.14), 0 3px 1px -2px rgba(156, 39, 176, 0.2), 0 1px 5px 0 rgba(156, 39, 176, 0.12);
+    background: #9C27B0;
+
+}
+button.btn-purple:hover{
+     box-shadow: 0 5px 11px 0 rgba(74, 20, 140, .14), 0 4px 15px 0 rgba(74, 20, 140, .15);
+}
