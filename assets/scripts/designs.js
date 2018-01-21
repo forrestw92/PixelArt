@@ -84,7 +84,7 @@ var pixelGrid = {
         this.coloredCellsInfo.push({
             row: $(cell).parent().attr("id"),
             cell: $(cell).attr("id"),
-            color: hexToRgb(pixelGrid.color.replace("#", ""))
+            color: hexToRgb(pixelGrid.color)
         });
         if (this.magicMode === true) {
             //check if cell is white if so then set the new cell color
@@ -111,6 +111,7 @@ var pixelGrid = {
     fillColor: function(cellColor) {
         //loop table and find all table cells
         $(this.tableContent).find("td").each(function(i, row) {
+            console.log(cellColor+":::::"+$(row).css("backgroundColor"))
             if ($(row).css("backgroundColor") === cellColor) { //check if loops cell color equals clicked cell color
                 $(row).css("backgroundColor", pixelGrid.color); //if so change to new color
             }
@@ -153,7 +154,7 @@ var pixelGrid = {
 }
 //Function to generate rgb color from hex color(David from StackOverflow)
 function hexToRgb(hex) {
-    var bigint = parseInt(hex, 16);
+    var bigint = parseInt(hex.replace("#", ""), 16);
     var r = (bigint >> 16) & 255;
     var g = (bigint >> 8) & 255;
     var b = bigint & 255;
