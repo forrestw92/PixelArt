@@ -1,69 +1,198 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <title>Pixel Art Maker!</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="https://fonts.googleapis.com/css?family=Monoton|Roboto" rel="stylesheet">
-    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
-    <link rel="stylesheet" href="assets/styles/styles.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-</head>
+    <head>
+        <title>
+            Pixel Art Maker!
+        </title>
+        <meta content="width=device-width, initial-scale=1" name="viewport">
+            <link href="https://fonts.googleapis.com/css?family=Roboto|VT323" rel="stylesheet"/>
+            <link crossorigin="anonymous" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" rel="stylesheet"/>
+            <link href="assets/styles/styles.css" rel="stylesheet"/>
+            <link href="assets/styles/color-picker.css" rel="stylesheet"/>
+
+        </meta>
+    </head>
+</html>
 <body>
-
-    <h1 class="hide" id="header">Lab: Pixel Art Maker</h1>
-
-    <div class="box">
-        <h2>Choose Grid Size</h2>
-        <form id="sizePicker">
-            <label for="input_height"> Grid Height:
-                <input type="number" id="input_height" name="height" min="1" value="1">
-            </label>
-            <label for="input_width"> Grid Width:
-                <input type="number" id="input_width" name="width" min="1" value="1">
-            </label>
-            <button id="submit" class="btn-green" type="submit">Build</button>
-        </form>
-
-        <h2>Background Color</h2>
-        <input type="color" id="colorBackgroundPicker"  list="colors" value="#ffffff">
-        <datalist id=colors>
-            <option>#000000</option>
-            <option>#ff0000</option>
-            <option>#00ff00</option>
-            <option>#0000ff</option>
-        </datalist>
-
-        <h2>How To</h2>
-        <p>Left click draws(Drag&Hold to continue)</p>
-        <p>Right click removes(Drag&Hold to continue)</p>
-        <p>Click Shift key to toggle safe color mode.</p>
-        <p>Click E key to toggle eraser mode</p>
-        <p>Click F key to toggle fill mode.</p>
-        <p>Click C key to change colors.</p>
-        <button id="load-save" class="hide btn-blue" >Load Saved Grid</button>
-        <button id="show-overlay" class="hide btn-purple" >Show Grid</button>
+    <div class="rotateDevice hide">
+        Please Rotate Back To Orginal Orientation
     </div>
-    <h2 class="hide" id="canvasHeader">Design Canvas</h2>
-    <div class="grid hide">
-        <table id="pixel_canvas"><tbody></tbody></table>
-        <div class="selectBox">
-            <div class="alert hide">
-                <span></span>
+    <div class="loadingScreen hide">
+        <span></span>
+        <div class="progressBar">
+
+            <div class="progress">
             </div>
-            <input type="color" class="hide" id="colorPicker">
-            <div class="selectItem" id="pencil"><i class="fa fa-pencil" aria-hidden="true"></i></div>
-            <div class="selectItem jscolor" id="eyedropper">
-                <i class="fa fa-eyedropper" aria-hidden="true"></i>
-            </div>
-            <div class="selectItem" id="eraser"><i class="fa fa-eraser" aria-hidden="true"></i></div>
-            <div class="selectItem" id="magic"><i class="fa fa-magic" aria-hidden="true"></i></div>
-            <div class="selectItem" id="refresh"><i class="fa fa-refresh" aria-hidden="true"></i></div>
-            <div class="selectItem" id="save-button"><i class="fa fa-file-image-o" aria-hidden="true"></i></div>
-            <div class="selectItem" id="close"><i class="fa fa-close" aria-hidden="true"></i></div>
         </div>
     </div>
-    <script src="assets/scripts/fit-text.js"></script>
-    <script src="assets/scripts/designs.js"></script>
-    <script src="assets/scripts/html2canvas.min.js"></script>
+    <div class="alert hide">
+        <span>
+        </span>
+    </div>
+    <h1 id="header">
+        Pixel Art Maker
+    </h1>
+    <div class="box">
+        <form class="innerBox" id="sizePicker">
+            <h2>
+                Choose Grid Size
+            </h2>
+            <label for="input_height">
+                Grid Height:
+                <input id="input_height" min="1" name="height" type="number" value="1">
+                </input>
+            </label>
+            <label for="input_width">
+                Grid Width:
+                <input id="input_width" min="1" name="width" type="number" value="1">
+                </input>
+            </label>
+            <button class="btn-green" id="submit" type="submit">
+                Build
+            </button>
+        </form>
+        <div class="innerBox">
+            <h2>
+                Background Color
+            </h2>
+            <button id="colorBackgroundPicker">
+                White
+            </button>
+        </div>
+        <div class="innerBox" id="hasSaved">
+            <h2>
+                Load Saved Grid
+            </h2>
+            <button class="btn-blue" id="loadSave">
+                Yes
+            </button>
+        </div>
+        <div class="innerBox">
+            <h2>
+                How To
+            </h2>
+            <p>
+                Left click draws(Drag&Hold; to continue)
+            </p>
+            <p>
+                Right click removes(Drag&Hold; to continue)
+            </p>
+            <p>
+                Click Shift key to toggle safe color mode.
+            </p>
+            <p>
+                Click E key to toggle eraser mode
+            </p>
+            <p>
+                Click F key to toggle fill mode.
+            </p>
+            <p>
+                Click C key to change colors.
+            </p>
+            <button class="hide btn-blue" id="load-save">
+                Load Saved Grid
+            </button>
+            <button class="hide btn-purple" id="show-overlay">
+                Show Grid
+            </button>
+        </div>
+    </div>
+    <div class="grid hide">
+        <table id="pixel_canvas">
+            <tbody>
+            </tbody>
+        </table>
+        <div id="toolbar">
+            <div class="toolBox">
+                Tools
+            </div>
+            <div class="boxItems showBox" id="scroll">
+                <div class="item active" id="pencil">
+                    <i aria-hidden="true" class="fa fa-pencil">
+                    </i>
+                    <span>
+                        Draw
+                    </span>
+                </div>
+                <div class="item" id="colorPicker">
+                    <i aria-hidden="true" class="fa fa-eyedropper">
+                    </i>
+                    <span>
+                        Color
+                    </span>
+                </div>
+                <div class="item" id="fill">
+                    <img alt="Fill Bucket" id="fillIMG" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACMAAAAjCAYAAAAe2bNZAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAANZSURBVFhH7ZdNSFRhFIbtRzFKpCKhRVGQuahoUWRlZiERWGQQLQokspBaGCht2rsr7IcIbNEuqE2KG8tFuQmiQNy0LCgjJKLMzP7HnvPd945zx7kz986M0MIHXr7vO+c95zs4c2ecknkKZXp6elEikViP9qMmzsfROqXnHi7djLrQM/STywMQ+8SyTfa5gUtq0COU8K4NB8tntF2lxYXGx9CU7nJw/ogGUTd6onAq48R3qEVxoGEtSr4c7O2v08y2VPkW9Ee5v+ih7YUNtNM1KgY0HLKudhFLm8IOYumDtCrebTFhA+12BYVAo2U0cu8RlvsKOzhnHMSH81XLGey/oDql8oMGG9XPGnYpnHMQH+LpA7WjFUrHg8IK9EvNnrIsQKXsr6E3KHQQw/zmtXofzpPI3vSrZYsORb3qY416WMqVslyVtqHgnzWQQWwCdbJdLGtuKNhAwbjrAJxfoQtopSw5ocwGuu51CEL8OctaWXNDQerT4SBmL9Ew6kEd6ARqRFtRMxpBr9Fp60GJDXTDqw5C3D6zDrjLsoG3DaP/RNkA7j0UFfz2RnffV6zZBvqODrpLM0HyMEodpBWtQufQA/TBdcoBvnq19Ae66WWCEJ9CDbLOQK6cxDuZjLDHtwrVYzvKegZdQo+tzmA/wlImu4NztoFGWZbL6kHwkJd2htsKR4IS+9fC/qon0VKFA+CxgW65C9Igflc2DwL22DnYNypcNGhbRt8+74bZkKuV1Q3TrrglmhQuCrTMOohB/p7sbphaxS3Rr3DB0C7nIAYe+6Re4hfZazrspVzysksUAG0Cg7B/j/rRW4UCEN+lUvfX2UIs9dP3ilKxoTzTIDXKLWRvX77fvKwHZ/eBmYTYHoITXjq/gSgLHSQVYkdkcXDuVGoG4jbQV88SbyDskQbxITcgq3k7FA5Coh5NyhdpIGyxBjHIn5Ld/OcVng3JvSj5urIPHYh07EEMPNUqsZoWhTODoQFlHYhwXoMY+CpUZnXhX5w++PZhTB3oDkul5divQYNeJt4gPvh/qDZaHUb7SZs60G80ipI/8tjGHsSgZgzZA+N+DkUCsz1lY+7mNIi/RNWyxoLyIWr7dIwOhZUUXkQD6AXqRWeJB/5tiAP1dWiTjvP875SU/ANPe9xthZlndAAAAABJRU5ErkJggg==">
+                        <span>
+                            Fill
+                        </span>
+                    </img>
+                </div>
+                <div class="item" id="eraser">
+                    <i aria-hidden="true" class="fa fa-eraser">
+                    </i>
+                    <span>
+                        Erase
+                    </span>
+                </div>
+                <div class="item" id="magic">
+                    <i aria-hidden="true" class="fa fa-magic">
+                    </i>
+                    <span>
+                        Outline
+                    </span>
+                </div>
+                <div class="item" id="undo">
+                    <i aria-hidden="true" class="fa fa-undo">
+                    </i>
+                    <span>
+                        Undo
+                    </span>
+                </div>
+                <div class="item" id="redo">
+                    <i aria-hidden="true" class="fa fa-repeat">
+                    </i>
+                    <span>
+                        Redo
+                    </span>
+                </div>
+                <div class="item" id="refresh">
+                    <i aria-hidden="true" class="fa fa-refresh">
+                    </i>
+                    <span>
+                        Reset
+                    </span>
+                </div>
+                <div class="item" id="image-button">
+                    <i aria-hidden="true" class="fa fa-file-image-o">
+                    </i>
+                    <span>
+                        Image
+                    </span>
+                </div>
+                <div class="item" id="save-data">
+                    <i aria-hidden="true" class="fa fa-save">
+                    </i>
+                    <span>
+                        Save
+                    </span>
+                </div>
+                <div class="item" id="mainMenu">
+                    <i aria-hidden="true" class="fa fa-times">
+                    </i>
+                    <span>
+                        Menu
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js">
+    </script>
+    <script src="assets/scripts/designs.js">
+    </script>
+    <script src="assets/scripts/html2canvas.min.js">
+    </script>
+    <script src="assets/scripts/color-picker.js">
+    </script>
 </body>
-</html>

@@ -1,23 +1,27 @@
 var pixelGrid = {
-    multiChange: false,
-    multiDelete: false,
-    defaultColor: "#ffffff",
     tableContent: $("#pixel_canvas tbody"),
-    fillMode: false,
-    eraserMode: false,
-    magicMode: false,
     width: 0,
     height: 0,
+    multiChange: false,
+    multiDelete: false,
+    eraserMode: false,
+    magicMode: false,
+    fillMode: false,
+    didUndoLast: false,
+    fillCount: 0,
+    colorCount: 0,
     coloredCellsInfo: [],
-    gridBackgroundColor: $("#colorBackgroundPicker").val(),
-    color: $("#colorPicker").val(),
+    undoCellsInfo: [],
+    gridBackgroundColor: "rgb(255, 255, 255)",
+    color: "rgb(0, 0, 0)",
+    colorFill: "",
     outlineColor: "",
     /**
      * @description Checks if browser supports Storage
      */
-    checkSave: function() {
+    checkSave() {
         if (typeof(Storage) !== "undefined") {
-            if (localStorage.getItem("pixel-art-1") !== undefined) {
+            if (localStorage.getItem("grid-cells-info") !== undefined) {
                 return true;
             }
             return false;
@@ -28,140 +32,226 @@ var pixelGrid = {
      * @description Load save table data from localStorage and update table.
      */
     loadSave: function() {
-        if (this.checkSave()) {
-            var gridInfo = $.parseJSON(localStorage.getItem("grid-info"));
-            var json = $.parseJSON(localStorage.getItem("grid-cells-info"));
-            var $this = this;
-            if (gridInfo.width !== undefined && gridInfo.height !== undefined && gridInfo.gridBackgroundColor !== undefined) {
-                $this.width = gridInfo.width;
-                $this.height = gridInfo.height;
-                $this.gridBackgroundColor = gridInfo.gridBackgroundColor;
-                $this.makeGrid(true);
-            }
-            $.each(json, function(idx, obj) {
-                if (obj.row !== undefined && obj.cell !== undefined && obj.color !== undefined) {
-                    $this.addColor($("tr:nth-child(" + obj.row + ") td:nth-child(" + obj.cell + ")"), obj.color);
-                }
-            });
+        let gridInfo = $.parseJSON(localStorage.getItem("grid-info"));
+        let json = $.parseJSON(localStorage.getItem("grid-cells-info"));
+        const $this = this;
+
+        if (gridInfo.width !== undefined && gridInfo.height !== undefined && gridInfo.gridBackgroundColor !== undefined) {
+            $this.width = gridInfo.width;
+            $this.height = gridInfo.height;
+            $this.gridBackgroundColor = gridInfo.gridBackgroundColor;
+            $this.makeGrid(true);
         }
+        let total = json.length;
+        $.map(json, function(obj, index) {
+            let color = "";
+            let cell = "";
+            setTimeout(function() {
+                cell = $(`tr:nth-child(${obj.row}) td:nth-child(${obj.col})`);
+                color = obj.color;
+                $this.addColor(cell, color);
+                $(".progress").css("width", (index / total * 100).toFixed(0) + "%");
+                 $(".loadingScreen span").text((index / total * 100).toFixed(0) + "%");
+
+                 if(((index / total * 100).toFixed(0)) == 100 || index == total-1){
+                    $(".loadingScreen").fadeOut(500);
+                 }
+            }, 0);
+
+        });
+
     },
     /**
      * @description Store table data into localStorage
      */
-    saveGrid: function() {
-        var gridInfo = {
-            width: this.width,
-            height: this.height,
-            gridBackgroundColor: this.gridBackgroundColor
-        };
+    saveGrid() {
         if (typeof(Storage) !== "undefined") {
+            localStorage.setItem("grid-info", "");
+            localStorage.setItem("grid-cells-info", "");
+            let cellInfo = [];
+            let gridInfo = {
+                width: this.width,
+                height: this.height,
+                gridBackgroundColor: this.gridBackgroundColor
+            };
+            $.map(this.coloredCellsInfo, function(obj, idx) {
+                cellInfo.push({
+                    row: $(obj.cell).parent("tr").index()+1,
+                    col: $(obj.cell).index()+1,
+                    color: obj.color,
+                });
+            });
             localStorage.setItem("grid-info", JSON.stringify(gridInfo));
-            localStorage.setItem("grid-cells-info", JSON.stringify(this.removeDuplicates(this.coloredCellsInfo)));
-            this.coloredCellsInfo = this.removeDuplicates(this.coloredCellsInfo);
-            addAlert("Saved Grid");
-        } else {
-            addAlert("Can not save grid");
+            localStorage.setItem("grid-cells-info", JSON.stringify(cellInfo));
+        }
+    },
+    checkIfCellStored(cell, color) {
+        for (const index in this.coloredCellsInfo) {
+            if (this.coloredCellsInfo[index].cell === cell && this.coloredCellsInfo[index].color === color) {
+                return true
+            }
         }
     },
     /**
      * @description Remove duplicates from object
      * @returns Array with no duplicates
      */
-    removeDuplicates: function() {
-        var uniq = new Set(this.coloredCellsInfo.map(e => JSON.stringify(e)));
+    removeDuplicates(array) {
+        var uniq = new Set(array.map(e => JSON.stringify(e)));
         var out = Array.from(uniq).map(e => JSON.parse(e));
         return out;
     },
-    /**
-     * @description Remove table borders
-     */
-    removeBorders: function() {
+    removeBorders() {
         $("table, tr, td").css("border", "none");
     },
-    /**
-     * @description Adds table borders
-     */
-    addBorders: function() {
+    addBorders() {
         $("table, tr, td").css("border", "1px solid black");
     },
     /**
+     * @description Redo's last cell changes
+     */
+    redoCellChange() {
+        if (this.undoCellsInfo.length === 0) return false;
+        this.didUndoLast = false;
+        let lastCellID = this.undoCellsInfo[this.undoCellsInfo.length - 1].id;
+        for (let index = this.undoCellsInfo.length - 1; index >= 0; --index) {
+            if (this.undoCellsInfo[index].id !== lastCellID) {
+                break;
+            }
+            this.addColor(this.undoCellsInfo[index].cell, this.undoCellsInfo[index].color);
+            this.undoCellsInfo.splice(-1, 1);
+        }
+        this.colorCount++;
+    },
+    /**
+     * @description Replaces last colored cell(s) with previous color
+     */
+    undoLastChange() {
+        if (this.coloredCellsInfo.length === 0) {
+            return false;
+        }
+        this.didUndoLast = true;
+        let lastCellID = this.coloredCellsInfo[this.coloredCellsInfo.length - 1].id;
+        for (let index = this.coloredCellsInfo.length - 1; index >= 0; --index) {
+            if (this.coloredCellsInfo[index].id !== lastCellID) {
+                break;
+            }
+            let id = this.coloredCellsInfo[index].id;
+            let cell = this.coloredCellsInfo[index].cell;
+            let oldColor = this.coloredCellsInfo[index].oldColor;
+            let color = this.coloredCellsInfo[index].color;
+            this.undoCellsInfo.push({
+                id,
+                cell,
+                oldColor,
+                color,
+            });
+            this.coloredCellsInfo.splice(-1, 1);
+            $(cell).css("backgroundColor", oldColor);
+        }
+    },
+    /**
+     * @description Sets selected cells color
+     * @param {Object} cell - Table Cell
+     */
+    setCellColor(cell, color, oldColor = false) {
+        $(cell).css("backgroundColor", color);
+        this.deleteOldUndos();
+        this.coloredCellsInfo.push({
+            id: this.colorCount,
+            cell: $(cell),
+            color,
+            oldColor
+        });
+    },
+    deleteOldUndos() {
+        if (this.undoCellsInfo.length !== 0 && this.didUndoLast == true) {
+            this.undoCellsInfo = [];
+        }
+    },
+    /**
+     * @description Adds Color to cell
      * @param {Object} cell - Table Cell
      * @param {string} color - New Cell Color
      */
-    addColor: function(cell, color = this.color) {
-        if ($(cell).css("backgroundColor") === hexToRgb(pixelGrid.color)) {
-            return false
-        };
-        this.coloredCellsInfo.push({
-            row: $(cell).parent().attr("id"),
-            cell: $(cell).attr("id"),
-            color: hexToRgb(pixelGrid.color)
-        });
+    addColor(cell, color = this.color) {
+        if ($(cell).css("backgroundColor") === this.color && (this.fillMode === true && $(cell).css("backgroundColor") === this.colorFill)) {
+            return false;
+        }
         if (this.magicMode === true) {
             if ($(cell).css("backgroundColor") === this.outlineColor) {
-                $(cell).css("backgroundColor", color);
+                this.setCellColor($(cell), color, $(cell).css("backgroundColor"));
+                return true;
             }
         } else if (this.fillMode === true) {
-            this.fillColor($(cell).css("backgroundColor"));
+            this.fillColor($(cell), $(cell).css("backgroundColor"));
+            return true;
         } else {
-            $(cell).css("backgroundColor", color);
+            this.setCellColor($(cell), color, $(cell).css("backgroundColor"));
+            return true;
         }
+        return false;
+    },
+    removeColor(cell) {
+        this.addColor($(cell), this.gridBackgroundColor);
+    },
+    changeColor() {
+        $("#eyedropper").css("backgroundColor", $("#colorPicker").val());
+        $("#eyedropper").css("color", utils.getHexContrast($("#colorPicker").val()));
+        this.color = utils.hexToRGB($("#colorPicker").val());
     },
     /**
-     * @param {Object} cell - Table Cell
-     * @description Removes cell color
+     * @param {Object} cell - Clicked cell
+     * @param {string} cellColorToFill - The Color of the cell to fill
+     * @description Finds path of same colored cells and fills
      */
-    removeColor: function(cell) {
-        $(cell).css("background", this.defaultColor);
-    },
-    /**
-     * @description Changes fill color from input[color]
-     */
-    changeColor: function() {
-        if ($("#colorPicker").val() !== "#ffffff") {
-            $("#eyedropper").css("backgroundColor", $("#colorPicker").val());
+    fillColor(cell, cellColorToFill) {
+        if ($(cell).css("backgroundColor") === this.colorFill) {
+            return false;
         }
-        this.color = $("#colorPicker").val();
-    },
-    /**
-     * @param {string} cellColor - Fill Color
-     * @description Fills color of all same colored cells
-     */
-    fillColor: function(cellColor) {
-        $(this.tableContent).find("td").each(function(i, row) {
-            console.log(cellColor + ":::::" + $(row).css("backgroundColor"))
-            if ($(row).css("backgroundColor") === cellColor) {
-                $(row).css("backgroundColor", pixelGrid.color);
+        let cellsToBeChecked = [$(cell)];
+        let checkCellForColor = [];
+        do {
+            checkCellForColor = cellsToBeChecked[cellsToBeChecked.length - 1];
+            cellsToBeChecked.pop();
+            if ($(checkCellForColor[0]).css("backgroundColor") === cellColorToFill) {
+                cellsToBeChecked.push([$(checkCellForColor[0]).prev()]);
+                cellsToBeChecked.push([$(checkCellForColor[0]).next()]);
+                cellsToBeChecked.push([$(checkCellForColor[0]).closest('tr').prev().find("td").eq($(checkCellForColor[0]).index())]);
+                cellsToBeChecked.push([$(checkCellForColor[0]).closest('tr').next().find("td").eq($(checkCellForColor[0]).index())]);
+                this.setCellColor($(checkCellForColor[0]), this.colorFill, cellColorToFill);
             }
-        });
+        } while (cellsToBeChecked.length > 0);
+        this.fillCount++;
+        return true;
     },
     /**
      * @param {boolean} isLoadedFromSave - Is Loaded From Save
      * @description Generates a table with input from form for rows and columns
      * @yields Table Size and Color
      */
-    makeGrid: function(isLoadedFromSave = false) {
+    makeGrid(isLoadedFromSave = false) {
+        this.coloredCellsInfo = [];
         this.init(isLoadedFromSave);
-        var table = "";
-        for (row = 0; row < this.height; row++) {
-            table += '<tr id="' + row + '">';
-            for (col = 0; col < this.width; col++) {
-                table += '<td style="background-color:' + this.gridBackgroundColor + '" id="' + col + '"></td>';
+        let tableStr="";
+        for(let row=0;row<this.height;row++){
+            tableStr +="<tr>";
+            for(let col=0;col<this.width;col++){
+                tableStr +="<td style='background-color:" + this.gridBackgroundColor + "'></td>";
             }
-            table += '</tr>';
         }
-        $(this.tableContent).append(table);
+        $(this.tableContent).append(tableStr);
+        utils.toolBoxFix();
     },
     /**
      * @param {boolean} isLoadedFromSave = Is Loaded From Save
      * @description Empty table and set variables from form
      */
-    init: function(isLoadedFromSave) {
+    init(isLoadedFromSave) {
         $(this.tableContent).empty()
         if (!isLoadedFromSave) {
             this.height = $("#input_height").val();
             this.width = $("#input_width").val();
-            this.gridBackgroundColor = $("#colorBackgroundPicker").val();
         }
         $("#eyedropper").css("backgroundColor", $("#colorPicker").val());
         $(".grid").removeClass("hide");
@@ -170,143 +260,138 @@ var pixelGrid = {
         }, 60000);
     }
 }
-/**
- * @description Makes header font responsive
- */
-$("#header").fitText(1, {
-    maxFontSize: '70px'
-}).fadeIn(3000).removeClass('hide');
-/**
- * @param {string} hex - Hex Color Code
- * @returns {string} rgb color string
- */
-function hexToRgb(hex) {
-    var bigint = parseInt(hex.replace("#", ""), 16);
-    var r = (bigint >> 16) & 255;
-    var g = (bigint >> 8) & 255;
-    var b = bigint & 255;
-    return "rgb(" + r + ", " + g + ", " + b + ")";
+var utils = {
+    toolBarMaxHeight: $(window).height() - $("#pixel_canvas").height() - 1,
+    toolBoxFix() {
+        if ($(window).height() - $("#pixel_canvas").height() - 1 <= this.toolBarMaxHeight) {
+            $(".toolBox").css("height", $(window).height() - $("#pixel_canvas").height() - 1 + "px");
+            $(".toolBox").css("line-height", $(window).height() - $("#pixel_canvas").height() + "px");
+        }
+    },
+    rgbToHex(rgbStr) {
+        let rgb = rgbStr.replace("rgb(", "").replace(")", "").split(",");
+        let rnt = rgb[2] | (rgb[1] << 8) | (rgb[0] << 16);
+        return '#' + (0x1000000 + rnt).toString(16).slice(1)
+    },
+    hexToRGB(hex) {
+        let bigint = parseInt(hex.replace("#", ""), 16);
+        let r = (bigint >> 16) & 255;
+        let g = (bigint >> 8) & 255;
+        let b = bigint & 255;
+        return "rgb(" + r + ", " + g + ", " + b + ")";
+    },
+    /**
+     * @description Checks and sees if hex color is bright or dark
+     * @param {string} hex - Hex Color Code
+     * @returns {string} Black or White hex
+     */
+    getHexContrast(hex) {
+        hex = hex.replace("#", "");
+        let r = parseInt(hex.substr(0, 2), 16);
+        let g = parseInt(hex.substr(2, 2), 16);
+        let b = parseInt(hex.substr(4, 2), 16);
+        let yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+        return (yiq >= 128) ? '#000000' : '#ffffff';
+    },
+    /**
+     * @description Turns off all modes
+     */
+    clearModes(modeName) {
+        let pixelModes = ["fillMode", "magicMode", "eraserMode"];
+        let modesID = ["fill", "magic", "eraser"];
+        modesID.forEach(function(mode, index) { //loops left over modes
+            if (mode !== modeName) {
+                pixelGrid[pixelModes[index]] = false; //sets them to false
+                $("#" + mode).removeClass("active"); //removes left over modes active class
+            }
+        });
+    },
+    isModesOn() {
+        if (pixelGrid.fillMode === true || pixelGrid.magicMode === true || pixelGrid.eraserMode === true) {
+            return true;
+        }
+        return false;
+    },
+    /**
+     * @description Generates a image from the table and saves to localStorage
+     */
+    gridToImage() {
+        pixelGrid.saveGrid();
+        pixelGrid.removeBorders();
+        $("#gridImg").removeClass("hide");
+        html2canvas($(pixelGrid.tableContent)[0]).then(function(canvas) {
+            let img = canvas.toDataURL("image/png");
+            pixelGrid.addBorders();
+            let a = $("<a>").attr("href", img).attr("download", "pixel-art.png").appendTo("body");
+            a[0].click();
+            a.remove();
+        });
+    },
+    toggleMode(mode, value = "") {
+        let pixelModes = ["fillMode", "magicMode", "eraserMode"];
+        let modesID = ["fill", "magic", "eraser"];
+        let curMode = pixelModes[modesID.indexOf(mode)];
+        if (mode !== "pencil") {
+            $("#pencil").removeClass("active");
+            this.clearModes(mode);
+        } else {
+            this.clearModes(mode);
+        }
+        if (mode !== "fill") {
+            $("#fill").css("backgroundColor", "");
+            $("#fill").children("img").attr("src", "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACMAAAAjCAYAAAAe2bNZAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAANZSURBVFhH7ZdNSFRhFIbtRzFKpCKhRVGQuahoUWRlZiERWGQQLQokspBaGCht2rsr7IcIbNEuqE2KG8tFuQmiQNy0LCgjJKLMzP7HnvPd945zx7kz986M0MIHXr7vO+c95zs4c2ecknkKZXp6elEikViP9qMmzsfROqXnHi7djLrQM/STywMQ+8SyTfa5gUtq0COU8K4NB8tntF2lxYXGx9CU7nJw/ogGUTd6onAq48R3qEVxoGEtSr4c7O2v08y2VPkW9Ee5v+ih7YUNtNM1KgY0HLKudhFLm8IOYumDtCrebTFhA+12BYVAo2U0cu8RlvsKOzhnHMSH81XLGey/oDql8oMGG9XPGnYpnHMQH+LpA7WjFUrHg8IK9EvNnrIsQKXsr6E3KHQQw/zmtXofzpPI3vSrZYsORb3qY416WMqVslyVtqHgnzWQQWwCdbJdLGtuKNhAwbjrAJxfoQtopSw5ocwGuu51CEL8OctaWXNDQerT4SBmL9Ew6kEd6ARqRFtRMxpBr9Fp60GJDXTDqw5C3D6zDrjLsoG3DaP/RNkA7j0UFfz2RnffV6zZBvqODrpLM0HyMEodpBWtQufQA/TBdcoBvnq19Ae66WWCEJ9CDbLOQK6cxDuZjLDHtwrVYzvKegZdQo+tzmA/wlImu4NztoFGWZbL6kHwkJd2htsKR4IS+9fC/qon0VKFA+CxgW65C9Igflc2DwL22DnYNypcNGhbRt8+74bZkKuV1Q3TrrglmhQuCrTMOohB/p7sbphaxS3Rr3DB0C7nIAYe+6Re4hfZazrspVzysksUAG0Cg7B/j/rRW4UCEN+lUvfX2UIs9dP3ilKxoTzTIDXKLWRvX77fvKwHZ/eBmYTYHoITXjq/gSgLHSQVYkdkcXDuVGoG4jbQV88SbyDskQbxITcgq3k7FA5Coh5NyhdpIGyxBjHIn5Ld/OcVng3JvSj5urIPHYh07EEMPNUqsZoWhTODoQFlHYhwXoMY+CpUZnXhX5w++PZhTB3oDkul5divQYNeJt4gPvh/qDZaHUb7SZs60G80ipI/8tjGHsSgZgzZA+N+DkUCsz1lY+7mNIi/RNWyxoLyIWr7dIwOhZUUXkQD6AXqRWeJB/5tiAP1dWiTjvP875SU/ANPe9xthZlndAAAAABJRU5ErkJggg==");
+        }
+        if (value === true) {
+            pixelGrid[curMode] = true;
+        } else {
+            if (pixelGrid[curMode] === true) {
+                $("#" + mode).removeClass("active");
+                pixelGrid[curMode] = false;
+            } else {
+                pixelGrid[curMode] = true;
+                $("#" + mode).addClass("active");
+            }
+        }
+        if (!this.isModesOn()) {
+            $("#pencil").addClass("active");
+        }
+    }
 }
-/**
- * @param {string} string - Alert Text
- * @param {integer} time - Show Time In Miliseconds
- */
-function addAlert(string, time = 1500) {
-    $(".alert").removeClass("hide").children("span").text(string);
-    setTimeout(function() {
-        $(".alert").toggleClass('hide');
-    }, time);
-}
-/**
- * @description Make table on form submit
- */
-$("#sizePicker").on("submit", function(e) {
-    e.preventDefault();
-    pixelGrid.makeGrid();
-});
-/**
- * @description Detects input[color] changes
- */
-$("#colorPicker").on("change", function() {
-    pixelGrid.changeColor();
-});
-/**
- * @description Clicks hidden input[color]
- */
-$("#eyedropper").click(function() {
-    $("#colorPicker").click();
-});
-/**
- * @description Shows table overlay
- */
-$("#show-overlay").click(function() {
-    $(".grid").toggleClass("hide");
-    $(this).toggleClass("hide");
-});
-/**
- * @description Reset all table cells color
- */
-$("#refresh").click(function() {
-    if (confirm("Are you sure you want to reset the grid?")) {
-        pixelGrid.makeGrid();
+$(".boxItems").on("click", ".item", function(e) {
+    let id = $(this).attr("id");
+    switch (id) {
+        case "pencil":
+            if (utils.isModesOn()) {
+                utils.toggleMode(id);
+            }
+            break;
+        case "eraser":
+            utils.toggleMode(id);
+            break;
+        case "magic":
+            utils.toggleMode(id);
+            break;
+        case "image-button":
+            utils.gridToImage();
+            break;
+        case "undo":
+            pixelGrid.undoLastChange();
+            break;
+        case "refresh":
+            if (confirm("Are you sure you want to refresh grid?")) {
+                pixelGrid.makeGrid();
+            }
+            break;
+        case "redo":
+            pixelGrid.redoCellChange();
+            break;
+        case "save-data":
+            console.log("pixelGrid.saveGrid();")
+            pixelGrid.saveGrid();
+            break;
     }
 });
-/**
- * @description Toggles touch/mouse click to remove cell colors instead of coloring cells
- */
-$("#eraser").click(function() {
-    if (pixelGrid.eraserMode === true) {
-        addAlert("You left Eraser Mode");
-        $(this).css("backgroundColor", "rgba(0, 0, 0, 0.5)");
-        $(this).css("color", "#f49b95");
-        pixelGrid.eraserMode = false
-    } else {
-        addAlert("You entered Eraser Mode");
-        $(this).css("backgroundColor", "#f49b95");
-        $(this).css("color", "#ffffff");
-        pixelGrid.eraserMode = true;
-    }
-});
-/**
- * @description Toggles change color of same clicked cell colors only.
- */
-$("#magic").click(function() {
-    if (pixelGrid.magicMode === true) {
-        addAlert("You left Magic Mode");
-        $(this).css("backgroundColor", "rgba(0, 0, 0, 0.5)");
-        $(this).css("color", "#ffd700");
-        pixelGrid.magicMode = false
-    } else {
-        addAlert("You entered Magic Mode");
-        $(this).css("backgroundColor", "#ffd700");
-        $(this).css("color", "#000000");
-        pixelGrid.magicMode = true;
-    }
-});
-/**
- * @description Toggles Fill mode to fill all same clicked cells color
- */
-$("#pencil").click(function() {
-    if (pixelGrid.fillMode === true) {
-        addAlert("You left Fill Mode");
-        $(this).css("backgroundColor", "rgba(0, 0, 0, 0.5)");
-        $(this).css("color", "#ffffff");
-        pixelGrid.fillMode = false
-    } else {
-        addAlert("You entered Fill Mode");
-        $(this).css("backgroundColor", "#4CAF50");
-        $(this).css("color", "#000000");
-        pixelGrid.fillMode = true;
-    }
-});
-/**
- * @description Hides table overlay
- */
-$("#close").click(function() {
-    $(".grid").toggleClass("hide");
-    $("#show-overlay").toggleClass("hide");
-});
-/**
- * @description Load Save table data on click
- */
-$("#load-save").click(function() {
-    pixelGrid.loadSave();
-});
-/**
- * @description Generates a image from the table and saves to localStorage
- */
-$("#save-button").click(function() {
-    pixelGrid.saveGrid();
-    pixelGrid.removeBorders();
-    $("#gridImg").removeClass("hide");
-    html2canvas($(pixelGrid.tableContent)[0]).then(function(canvas) {
-        var img = canvas.toDataURL("image/png");
-        pixelGrid.addBorders();
-        var a = $("<a>").attr("href", img).attr("download", "pixel-art.png").appendTo("body");
-        a[0].click();
-        a.remove();
-    });
-});
+let oldColor = "";
 $(pixelGrid.tableContent).on({
     /**
      * @description Detects touch of cell and adds or removes color
@@ -326,8 +411,8 @@ $(pixelGrid.tableContent).on({
      * @description Detects touch move and finds element moved over and adds or removes color
      */
     touchmove: function(e) {
-        var touchLocation = e.originalEvent.changedTouches[0];
-        var targetFromPos = document.elementFromPoint(touchLocation.clientX, touchLocation.clientY);
+        let touchLocation = e.originalEvent.changedTouches[0];
+        let targetFromPos = document.elementFromPoint(touchLocation.clientX, touchLocation.clientY);
         if ($(targetFromPos).is("td")) {
             if (pixelGrid.multiChange === true) {
                 pixelGrid.addColor(targetFromPos);
@@ -341,6 +426,7 @@ $(pixelGrid.tableContent).on({
     touchend: function() {
         pixelGrid.multiChange = false;
         pixelGrid.multiDelete = false;
+        pixelGrid.colorCount++;
     },
     /**
      * @description Detects mouse click and adds or removes color
@@ -364,41 +450,171 @@ $(pixelGrid.tableContent).on({
     /**
      * @description Detects mouse click up resets variables
      */
-    mouseup: function() {
+    mouseup: function(e) {
         pixelGrid.multiChange = false;
         pixelGrid.multiDelete = false;
+        pixelGrid.colorCount++;
+    },
+    mouseleave: function(e) {
+        $(this).css("background-image", "");
     },
     /**
      * @description Detects mouse move and adds or removes color from cells moved over
      */
-    mousemove: function(e) {
-        if (pixelGrid.multiChange === true) pixelGrid.addColor(e.target);
-        if (pixelGrid.multiDelete === true) pixelGrid.removeColor(e.target);
+    mouseenter: function(e) {
+        if (pixelGrid.multiChange === true) pixelGrid.addColor($(this));
+        if (pixelGrid.multiDelete === true) pixelGrid.removeColor($(this));
+        if (pixelGrid.eraserMode) {
+            let color = utils.getHexContrast(utils.rgbToHex($(this).css("backgroundColor")));
+            let bgImage = `linear-gradient(to bottom left, transparent calc(50% - 1px), ${color}, transparent calc(50% + 1px)),linear-gradient(to bottom right, transparent calc(50% - 1px), ${color}, transparent calc(50% + 1px))`;
+            $(this).css("background-image", bgImage)
+        } else {
+            let bgImage = `linear-gradient(to bottom left, transparent calc(50% - 1px), ${pixelGrid.color}, transparent calc(50% + 1px)),linear-gradient(to bottom right, transparent calc(50% - 1px), ${pixelGrid.color}, transparent calc(50% + 1px))`;
+            $(this).css("background-image", bgImage);
+        }
     }
-});
+}, "td");
 /**
  * @description Assigns hotkeys for Magic Mode,Eraser Mode,Color Picker,Fill Mode
  */
 $(document).on("keyup", function(e) {
-    var key = e.which || e.keyCode;
+    let key = e.which || e.keyCode;
     if (key === 67) $("#colorPicker").click();
-    if (key === 69) $("#eraser").click();
-    if (key === 70) $("#pencil").click();
-    if (key === 16) $("#magic").click();
+    if (key === 69) utils.toggleMode("eraser");
+    if (key === 70) $("#fill").click();
+    if (key === 16) utils.toggleMode("magic");
 });
-/**
- * @description Stops Right click menu from showing
- */
 $(pixelGrid.tableContent).on("contextmenu", "td", function(e) {
-    e.preventDefault();
+    return false;
 });
+$(".toolBox").on("click", function(e) {
+    if (!e.target.classList.contains("item") && !e.target.classList.contains("boxItems") && !e.target.classList.contains("fa") && e.target.tagName !== 'IMG' && e.target.tagName !== 'SPAN') {
+        if ($(".boxItems").hasClass("hideBox")) {
+            $(".boxItems").removeClass("hideBox");
+        } else {
+            $(".boxItems").addClass("hideBox");
+        }
+    }
+})
+$("#hasSaved").on("click", function() {
+    $(".loadingScreen").css("display", "flex");
+    setTimeout(function() {
+        pixelGrid.loadSave();
+    }, 50);
+})
+$("#mainMenu").on("click", function() {
+    $(".innerBox:nth-child(1)").removeClass("animate-out-left");
+    $(".innerBox:nth-child(2)").removeClass("animate-out-right");
+    $(".innerBox:nth-child(3)").removeClass("animate-out-left");
+    if (pixelGrid.checkSave()) {
+        $(".innerBox:nth-child(4)").removeClass("animate-out-right");
+    }
+    $(".grid").addClass("hide");
+    $('#header').text("Pixel Art Maker").fadeIn(1500);
+})
 /**
- * @description Set input[text] values based on screen width & height / cell height & width;
+ * @description Make table on form submit
  */
-$(function() {
-    if (pixelGrid.checkSave()) $("#load-save").removeClass("hide");
+$("#sizePicker").on("submit", function(e) {
+    e.preventDefault();
+    $(".innerBox:nth-child(1)").addClass("animate-out-left");
+    $(".innerBox:nth-child(2)").addClass("animate-out-right");
+    $(".innerBox:nth-child(3)").addClass("animate-out-left");
+    if (pixelGrid.checkSave()) {
+        $(".innerBox:nth-child(4)").addClass("animate-out-right");
+    }
+    $('#header').text("Let's Make Art").fadeOut(1500);
+    setTimeout(function() {
+        pixelGrid.makeGrid();
+    }, 1000);
+});
+$(window).resize(function() {
     $("#input_width").val(Math.floor($(window).width() / 20));
-    $("#input_height").val(Math.floor($(window).height() / 20));
+    $("#input_height").val(Math.floor($(window).height() / 20) - 1);
     $("#input_width").attr("max", Math.floor($(window).width() / 20));
-    $("#input_height").attr("max", Math.floor($(window).height() / 20));
+    $("#input_height").attr("max", Math.floor($(window).height() / 20) - 1);
+    utils.toolBoxFix();
+});
+$(window).on("orientationchange", function() {
+    $(".rotateDevice").toggleClass("hide");
+})
+$(document).mouseleave(function() {
+    pixelGrid.multiChange = false;
+    pixelGrid.multiDelete = false;
+});
+$(document).ready(function() {
+    if (pixelGrid.checkSave()) {
+        $("#hasSaved").css("display", "block");
+        //pixelGrid.loadSave()
+    }
+    $("#colorPicker").spectrum({
+        preferredFormat: "rgb",
+        color: "#000000",
+        containerClassName: '',
+        localStorageKey: "pixelGrid",
+        showInput: true,
+        showPalette: true,
+        palette: [],
+        showSelectionPalette: true,
+        selectionPalette: ["red", "green", "blue"],
+        maxSelectionSize: 5,
+        move: function(color) {
+            $(this).css("backgroundColor", color.toRgbString());
+            $(this).css("color", utils.getHexContrast(color.toHexString()));
+            $(this).addClass("active");
+            pixelGrid.color = color.toRgbString();
+        },
+        change: function(color) {
+            $(this).css("backgroundColor", color.toRgbString());
+            $(this).css("color", utils.getHexContrast(color.toHexString()));
+            $(this).addClass("active");
+            pixelGrid.color = color.toRgbString();
+        }
+    });
+    $("#fill").spectrum({
+        preferredFormat: "rgb",
+        color: "#000000",
+        containerClassName: '',
+        localStorageKey: "pixelGrid",
+        showInput: true,
+        showPalette: true,
+        palette: [],
+        showSelectionPalette: true,
+        selectionPalette: ["red", "green", "blue"],
+        maxSelectionSize: 5,
+        move: function(color) {
+            $(this).css("backgroundColor", color.toRgbString());
+            $(this).css("color", utils.getHexContrast(color.toHexString()));
+            $(this).children("img").attr("src", utils.getHexContrast(color.toHexString()) === "#ffffff" ? "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACMAAAAjCAYAAAAe2bNZAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAANZSURBVFhH7ZdNSFRhFIbtRzFKpCKhRVGQuahoUWRlZiERWGQQLQokspBaGCht2rsr7IcIbNEuqE2KG8tFuQmiQNy0LCgjJKLMzP7HnvPd945zx7kz986M0MIHXr7vO+c95zs4c2ecknkKZXp6elEikViP9qMmzsfROqXnHi7djLrQM/STywMQ+8SyTfa5gUtq0COU8K4NB8tntF2lxYXGx9CU7nJw/ogGUTd6onAq48R3qEVxoGEtSr4c7O2v08y2VPkW9Ee5v+ih7YUNtNM1KgY0HLKudhFLm8IOYumDtCrebTFhA+12BYVAo2U0cu8RlvsKOzhnHMSH81XLGey/oDql8oMGG9XPGnYpnHMQH+LpA7WjFUrHg8IK9EvNnrIsQKXsr6E3KHQQw/zmtXofzpPI3vSrZYsORb3qY416WMqVslyVtqHgnzWQQWwCdbJdLGtuKNhAwbjrAJxfoQtopSw5ocwGuu51CEL8OctaWXNDQerT4SBmL9Ew6kEd6ARqRFtRMxpBr9Fp60GJDXTDqw5C3D6zDrjLsoG3DaP/RNkA7j0UFfz2RnffV6zZBvqODrpLM0HyMEodpBWtQufQA/TBdcoBvnq19Ae66WWCEJ9CDbLOQK6cxDuZjLDHtwrVYzvKegZdQo+tzmA/wlImu4NztoFGWZbL6kHwkJd2htsKR4IS+9fC/qon0VKFA+CxgW65C9Igflc2DwL22DnYNypcNGhbRt8+74bZkKuV1Q3TrrglmhQuCrTMOohB/p7sbphaxS3Rr3DB0C7nIAYe+6Re4hfZazrspVzysksUAG0Cg7B/j/rRW4UCEN+lUvfX2UIs9dP3ilKxoTzTIDXKLWRvX77fvKwHZ/eBmYTYHoITXjq/gSgLHSQVYkdkcXDuVGoG4jbQV88SbyDskQbxITcgq3k7FA5Coh5NyhdpIGyxBjHIn5Ld/OcVng3JvSj5urIPHYh07EEMPNUqsZoWhTODoQFlHYhwXoMY+CpUZnXhX5w++PZhTB3oDkul5divQYNeJt4gPvh/qDZaHUb7SZs60G80ipI/8tjGHsSgZgzZA+N+DkUCsz1lY+7mNIi/RNWyxoLyIWr7dIwOhZUUXkQD6AXqRWeJB/5tiAP1dWiTjvP875SU/ANPe9xthZlndAAAAABJRU5ErkJggg==" : "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACMAAAAjCAYAAAAe2bNZAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAKwSURBVFhH7ddLyA1hHMfx1zVCQpQFUS4LZEHu1ySFULKgJJfEgiIbeztyS4qFnWKDbFwW2ChRsrGkXJIk9/v9++X9n5533nPmzJn3vLLwq0/eZp6Z83PmeWbOtPxPE9INIzEfi7EKI/DXMh57cAOf8TPjBSahUzMWl/AD2QJZLzEZnZKV+ID0A5/jMvbjauu21CtMQVMzFenl8NtZjh4wa/EN7vuOi61/R6FpaFquIT5osxuSZItsgPHbSgvNQIfTFzFHTrshSa0ikQOIQq8xEx3KGMQJXUGRekUi2ULbMBCl0g9f4MmuowucKwfxAHlFjOMdG4X0Dl7GoWg4ZxEnOoZeiAxp/Tcv1QrpDXaiOwpnFJyEcZJ72I5BKBoLHUJaJtzEcBROujqCl+g2/LZ2YDUWYCJc+ndwH+thLHQY2fPIe9ZC1I3LOVaUBWIOFeVEj+dVXqGPWISaWYq0iJN1MLbgDJ4he9JqZiNioSOoNs67/Fy0ixP1MRxkoVqrxknsh63ARuzGFcQHeLl6Ik1eoUcYgDZZghhw3A0NxJ8Wfqtr0McNVWKho0iLhJNoE5dd7HRiNjt+W+eQlkj5TKzEu2Xs8IdTM1OviE6hEpvFjvNuaFKKFJF36t74Ha+p95HYuRcdTbbIE/gffZhsS01HJROQ3n33oWyqFfHXo+kKH77vEfsVN8xKZsHnSAwoUyivSJpliDFyEbWLhd4iBjVSqGiRyAXEWB8zVeONzUkVA4sUarSIWYcYv9UNtTIH6XXNK1SmiBmNOMZ5lBufHfUKlS1i/EEXx+U+OCPzkBY6gf4ww+ArTOxrpEjkEzy28HG+0qaFvsKHXPqSV6aIeQoXTLwOFYqrzAPjw1N34fUvE1+PvMwNx8uzCy7JW/A38yY4b8rG15pxf/78n38+LS2/AJUMUFYb7b3KAAAAAElFTkSuQmCC");
+            pixelGrid.colorFill = color.toRgbString();
+        },
+        change: function(color) {
+            $(this).css("backgroundColor", color.toRgbString());
+            $(this).css("color", utils.getHexContrast(color.toHexString()));
+            $(this).children("img").attr("src", utils.getHexContrast(color.toHexString()) === "#ffffff" ? "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACMAAAAjCAYAAAAe2bNZAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAANZSURBVFhH7ZdNSFRhFIbtRzFKpCKhRVGQuahoUWRlZiERWGQQLQokspBaGCht2rsr7IcIbNEuqE2KG8tFuQmiQNy0LCgjJKLMzP7HnvPd945zx7kz986M0MIHXr7vO+c95zs4c2ecknkKZXp6elEikViP9qMmzsfROqXnHi7djLrQM/STywMQ+8SyTfa5gUtq0COU8K4NB8tntF2lxYXGx9CU7nJw/ogGUTd6onAq48R3qEVxoGEtSr4c7O2v08y2VPkW9Ee5v+ih7YUNtNM1KgY0HLKudhFLm8IOYumDtCrebTFhA+12BYVAo2U0cu8RlvsKOzhnHMSH81XLGey/oDql8oMGG9XPGnYpnHMQH+LpA7WjFUrHg8IK9EvNnrIsQKXsr6E3KHQQw/zmtXofzpPI3vSrZYsORb3qY416WMqVslyVtqHgnzWQQWwCdbJdLGtuKNhAwbjrAJxfoQtopSw5ocwGuu51CEL8OctaWXNDQerT4SBmL9Ew6kEd6ARqRFtRMxpBr9Fp60GJDXTDqw5C3D6zDrjLsoG3DaP/RNkA7j0UFfz2RnffV6zZBvqODrpLM0HyMEodpBWtQufQA/TBdcoBvnq19Ae66WWCEJ9CDbLOQK6cxDuZjLDHtwrVYzvKegZdQo+tzmA/wlImu4NztoFGWZbL6kHwkJd2htsKR4IS+9fC/qon0VKFA+CxgW65C9Igflc2DwL22DnYNypcNGhbRt8+74bZkKuV1Q3TrrglmhQuCrTMOohB/p7sbphaxS3Rr3DB0C7nIAYe+6Re4hfZazrspVzysksUAG0Cg7B/j/rRW4UCEN+lUvfX2UIs9dP3ilKxoTzTIDXKLWRvX77fvKwHZ/eBmYTYHoITXjq/gSgLHSQVYkdkcXDuVGoG4jbQV88SbyDskQbxITcgq3k7FA5Coh5NyhdpIGyxBjHIn5Ld/OcVng3JvSj5urIPHYh07EEMPNUqsZoWhTODoQFlHYhwXoMY+CpUZnXhX5w++PZhTB3oDkul5divQYNeJt4gPvh/qDZaHUb7SZs60G80ipI/8tjGHsSgZgzZA+N+DkUCsz1lY+7mNIi/RNWyxoLyIWr7dIwOhZUUXkQD6AXqRWeJB/5tiAP1dWiTjvP875SU/ANPe9xthZlndAAAAABJRU5ErkJggg==" : "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACMAAAAjCAYAAAAe2bNZAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAKwSURBVFhH7ddLyA1hHMfx1zVCQpQFUS4LZEHu1ySFULKgJJfEgiIbeztyS4qFnWKDbFwW2ChRsrGkXJIk9/v9++X9n5533nPmzJn3vLLwq0/eZp6Z83PmeWbOtPxPE9INIzEfi7EKI/DXMh57cAOf8TPjBSahUzMWl/AD2QJZLzEZnZKV+ID0A5/jMvbjauu21CtMQVMzFenl8NtZjh4wa/EN7vuOi61/R6FpaFquIT5osxuSZItsgPHbSgvNQIfTFzFHTrshSa0ikQOIQq8xEx3KGMQJXUGRekUi2ULbMBCl0g9f4MmuowucKwfxAHlFjOMdG4X0Dl7GoWg4ZxEnOoZeiAxp/Tcv1QrpDXaiOwpnFJyEcZJ72I5BKBoLHUJaJtzEcBROujqCl+g2/LZ2YDUWYCJc+ndwH+thLHQY2fPIe9ZC1I3LOVaUBWIOFeVEj+dVXqGPWISaWYq0iJN1MLbgDJ4he9JqZiNioSOoNs67/Fy0ixP1MRxkoVqrxknsh63ARuzGFcQHeLl6Ik1eoUcYgDZZghhw3A0NxJ8Wfqtr0McNVWKho0iLhJNoE5dd7HRiNjt+W+eQlkj5TKzEu2Xs8IdTM1OviE6hEpvFjvNuaFKKFJF36t74Ha+p95HYuRcdTbbIE/gffZhsS01HJROQ3n33oWyqFfHXo+kKH77vEfsVN8xKZsHnSAwoUyivSJpliDFyEbWLhd4iBjVSqGiRyAXEWB8zVeONzUkVA4sUarSIWYcYv9UNtTIH6XXNK1SmiBmNOMZ5lBufHfUKlS1i/EEXx+U+OCPzkBY6gf4ww+ArTOxrpEjkEzy28HG+0qaFvsKHXPqSV6aIeQoXTLwOFYqrzAPjw1N34fUvE1+PvMwNx8uzCy7JW/A38yY4b8rG15pxf/78n38+LS2/AJUMUFYb7b3KAAAAAElFTkSuQmCC");
+            utils.toggleMode("fill", true);
+            pixelGrid.colorFill = color.toRgbString();
+        }
+    });
+    $("#colorBackgroundPicker").spectrum({
+        color: "#ffffff",
+        preferredFormat: "rgb",
+        showInput: true,
+        move: function(color) {
+            $(this).css("backgroundColor", color.toRgbString());
+            $(this).css("color", utils.getHexContrast(color.toHexString()));
+            $(this).text(color.toHexString());
+            pixelGrid.gridBackgroundColor = color.toRgbString();
+        },
+        change: function(color) {
+            $(this).css("backgroundColor", color.toRgbString());
+            $(this).css("color", utils.getHexContrast(color.toHexString()));
+            $(this).text(color.toHexString());
+            pixelGrid.gridBackgroundColor = color.toRgbString();
+        }
+    });
+    $("#input_width").val(Math.floor($(window).width() / 20));
+    $("#input_height").val(Math.floor($(window).height() / 20) - 1);
+    $("#input_width").attr("max", Math.floor($(window).width() / 20));
+    $("#input_height").attr("max", Math.floor($(window).height() / 20) - 1);
 });
