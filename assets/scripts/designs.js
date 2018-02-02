@@ -261,11 +261,11 @@ var pixelGrid = {
     }
 }
 var utils = {
-    toolBarMaxHeight: $(window).height() - $("#pixel_canvas").height() - 1,
+    toolBarMaxHeight: ($(window).height() - $("#pixel_canvas").height() - 1 > 50) ? 50 :  $(window).height() - $("#pixel_canvas").height() - 1,
     toolBoxFix() {
-        if ($(window).height() - $("#pixel_canvas").height() - 1 <= this.toolBarMaxHeight) {
-            $(".toolBox").css("height", $(window).height() - $("#pixel_canvas").height() - 1 + "px");
-            $(".toolBox").css("line-height", $(window).height() - $("#pixel_canvas").height() + "px");
+        if (this.toolBarMaxHeight <=50) {
+            $(".toolBox").css("height", this.toolBarMaxHeight + "px");
+            $(".toolBox").css("line-height", this.toolBarMaxHeight + "px");
         }
     },
     rgbToHex(rgbStr) {

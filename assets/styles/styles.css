@@ -132,7 +132,8 @@ input[type=number] {
     vertical-align: middle;
     width: 100%;
     height: 20px;
-    line-height: 20px;
+    max-height: 50px;
+    line-height: 50px;
     background-color: rgba(0, 0, 0, 0.7);
     position: fixed;
     bottom: 0px;
@@ -158,7 +159,9 @@ input[type=number] {
     white-space: nowrap;
     margin: auto;
     border-radius: 2px;
-    position: relative;
+    position: absolute;
+    left: 0;
+    right: 0;
     opacity: 1;
     width: 826px;
     -webkit-transition: all 0.5s ease-in-out;
