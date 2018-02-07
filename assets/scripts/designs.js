@@ -35,7 +35,6 @@ var pixelGrid = {
         let gridInfo = $.parseJSON(localStorage.getItem("grid-info"));
         let json = $.parseJSON(localStorage.getItem("grid-cells-info"));
         const $this = this;
-
         if (gridInfo.width !== undefined && gridInfo.height !== undefined && gridInfo.gridBackgroundColor !== undefined) {
             $this.width = gridInfo.width;
             $this.height = gridInfo.height;
@@ -51,15 +50,12 @@ var pixelGrid = {
                 color = obj.color;
                 $this.addColor(cell, color);
                 $(".progress").css("width", (index / total * 100).toFixed(0) + "%");
-                 $(".loadingScreen span").text((index / total * 100).toFixed(0) + "%");
-
-                 if(((index / total * 100).toFixed(0)) == 100 || index == total-1){
+                $(".loadingScreen span").text((index / total * 100).toFixed(0) + "%");
+                if (((index / total * 100).toFixed(0)) == 100 || index == total - 1) {
                     $(".loadingScreen").fadeOut(500);
-                 }
+                }
             }, 0);
-
         });
-
     },
     /**
      * @description Store table data into localStorage
@@ -76,8 +72,8 @@ var pixelGrid = {
             };
             $.map(this.coloredCellsInfo, function(obj, idx) {
                 cellInfo.push({
-                    row: $(obj.cell).parent("tr").index()+1,
-                    col: $(obj.cell).index()+1,
+                    row: $(obj.cell).parent("tr").index() + 1,
+                    col: $(obj.cell).index() + 1,
                     color: obj.color,
                 });
             });
@@ -233,11 +229,11 @@ var pixelGrid = {
     makeGrid(isLoadedFromSave = false) {
         this.coloredCellsInfo = [];
         this.init(isLoadedFromSave);
-        let tableStr="";
-        for(let row=0;row<this.height;row++){
-            tableStr +="<tr>";
-            for(let col=0;col<this.width;col++){
-                tableStr +="<td style='background-color:" + this.gridBackgroundColor + "'></td>";
+        let tableStr = "";
+        for (let row = 0; row < this.height; row++) {
+            tableStr += "<tr>";
+            for (let col = 0; col < this.width; col++) {
+                tableStr += "<td style='background-color:" + this.gridBackgroundColor + "'></td>";
             }
         }
         $(this.tableContent).append(tableStr);
@@ -261,9 +257,9 @@ var pixelGrid = {
     }
 }
 var utils = {
-    toolBarMaxHeight: ($(window).height() - $("#pixel_canvas").height() - 1 > 50) ? 50 :  $(window).height() - $("#pixel_canvas").height() - 1,
+    toolBarMaxHeight: ($(window).height() - $("#pixel_canvas").height() - 1 > 50) ? 50 : $(window).height() - $("#pixel_canvas").height() - 1,
     toolBoxFix() {
-        if (this.toolBarMaxHeight <=50) {
+        if (this.toolBarMaxHeight <= 50) {
             $(".toolBox").css("height", this.toolBarMaxHeight + "px");
             $(".toolBox").css("line-height", this.toolBarMaxHeight + "px");
         }
@@ -392,6 +388,7 @@ $(".boxItems").on("click", ".item", function(e) {
     }
 });
 let oldColor = "";
+let mouseDown = false;
 $(pixelGrid.tableContent).on({
     /**
      * @description Detects touch of cell and adds or removes color
@@ -433,6 +430,7 @@ $(pixelGrid.tableContent).on({
      */
     mousedown: function(e) {
         e.preventDefault();
+        mouseDown = true;
         if (e.which === 1) {
             if (pixelGrid.eraserMode === true) {
                 pixelGrid.multiDelete = true;
@@ -451,6 +449,7 @@ $(pixelGrid.tableContent).on({
      * @description Detects mouse click up resets variables
      */
     mouseup: function(e) {
+        mouseDown = false;
         pixelGrid.multiChange = false;
         pixelGrid.multiDelete = false;
         pixelGrid.colorCount++;
@@ -484,8 +483,14 @@ $(document).on("keyup", function(e) {
     if (key === 70) $("#fill").click();
     if (key === 16) utils.toggleMode("magic");
 });
-$(pixelGrid.tableContent).on("contextmenu", "td", function(e) {
-    return false;
+$(pixelGrid.tableContent).on({
+    contextmenu: function() {
+        return false;
+    },
+    mouseleave: function() {
+        pixelGrid.multiChange = false;
+        pixelGrid.multiDelete = false;
+    }
 });
 $(".toolBox").on("click", function(e) {
     if (!e.target.classList.contains("item") && !e.target.classList.contains("boxItems") && !e.target.classList.contains("fa") && e.target.tagName !== 'IMG' && e.target.tagName !== 'SPAN') {
