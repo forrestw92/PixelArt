@@ -257,12 +257,11 @@ var pixelGrid = {
     }
 }
 var utils = {
-    toolBarMaxHeight: ($(window).height() - $("#pixel_canvas").height() - 1 > 50) ? 50 : $(window).height() - $("#pixel_canvas").height() - 1,
     toolBoxFix() {
-        if (this.toolBarMaxHeight <= 50) {
-            $(".toolBox").css("height", this.toolBarMaxHeight + "px");
-            $(".toolBox").css("line-height", this.toolBarMaxHeight + "px");
-        }
+        let toolBarMaxHeight = $(window).height() - $("#pixel_canvas").height() - 1;
+        $(".toolBox").css("height",toolBarMaxHeight + "px");
+        $(".toolBox").css("line-height", toolBarMaxHeight + "px");
+         
     },
     rgbToHex(rgbStr) {
         let rgb = rgbStr.replace("rgb(", "").replace(")", "").split(",");
@@ -496,8 +495,11 @@ $(".toolBox").on("click", function(e) {
     if (!e.target.classList.contains("item") && !e.target.classList.contains("boxItems") && !e.target.classList.contains("fa") && e.target.tagName !== 'IMG' && e.target.tagName !== 'SPAN') {
         if ($(".boxItems").hasClass("hideBox")) {
             $(".boxItems").removeClass("hideBox");
+            $(this).children("span").html("Hide Toolbar");
         } else {
             $(".boxItems").addClass("hideBox");
+            $(this).children("span").html("Show Toolbar");
+
         }
     }
 })
