@@ -20,7 +20,7 @@ var pixelGrid = {
      * @description Checks if browser supports Storage
      */
     checkSave() {
-        if (typeof(Storage) !== "undefined") {
+        if (typeof (Storage) !== "undefined") {
             if (localStorage.getItem("grid-cells-info") !== undefined) {
                 return true;
             }
@@ -31,7 +31,7 @@ var pixelGrid = {
     /**
      * @description Load save table data from localStorage and update table.
      */
-    loadSave: function() {
+    loadSave: function () {
         document.querySelector(".grid").classList.remove("hide");
         let gridInfo = JSON.parse(localStorage.getItem("grid-info"));
         let json = JSON.parse(localStorage.getItem("grid-cells-info"));
@@ -44,7 +44,8 @@ var pixelGrid = {
         }
         let total = json.length;
         json.map((obj, index) => {
-            setTimeout(function() {
+            setTimeout(function () {
+
                 let cell = document.querySelector(`tr:nth-child(${obj.row}) td:nth-child(${obj.col})`);
                 let color = obj.color;
                 $this.addColor(cell, color);
@@ -54,9 +55,11 @@ var pixelGrid = {
                     document.querySelector(".loadingScreen").style.transition = "opacity .5s ease-in-out";
                     document.querySelector(".loadingScreen").style.opacity = 0;
                     utils.toolBoxFix();
-                    setTimeout(function() {
+                    setTimeout(function () {
                         document.querySelector(".loadingScreen").parentNode.removeChild(document.querySelector(".loadingScreen"));
+
                     }, 500);
+
                 }
             }, 0);
         });
@@ -65,7 +68,7 @@ var pixelGrid = {
      * @description Store table data into localStorage
      */
     saveGrid() {
-        if (typeof(Storage) !== "undefined") {
+        if (typeof (Storage) !== "undefined") {
             localStorage.setItem("grid-info", "");
             localStorage.setItem("grid-cells-info", "");
             let cellInfo = [];
@@ -74,11 +77,13 @@ var pixelGrid = {
                 height: this.height,
                 gridBackgroundColor: this.gridBackgroundColor
             };
-            this.coloredCellsInfo.map(obj => cellInfo.push({
-                row: obj.cell.parentNode.rowIndex + 1,
-                col: obj.cell.cellIndex + 1,
-                color: obj.color,
-            }));
+            this.coloredCellsInfo.map(obj =>
+                cellInfo.push({
+                    row: obj.cell.parentNode.rowIndex + 1,
+                    col: obj.cell.cellIndex + 1,
+                    color: obj.color,
+                })
+            );
             localStorage.setItem("grid-info", JSON.stringify(gridInfo));
             localStorage.setItem("grid-cells-info", JSON.stringify(cellInfo));
         }
@@ -156,17 +161,21 @@ var pixelGrid = {
         if (this.magicMode === true) {
             if (cell.style.backgroundColor === this.outlineColor) {
                 this.setCellColor(cell, color, cell.style.backgroundColor);
+
             }
         } else if (this.fillMode === true) {
             this.fillColor(cell, cell.style.backgroundColor);
+
         } else {
             this.setCellColor(cell, color, cell.style.backgroundColor);
+
         }
         return false;
     },
     resetColor(cell) {
         this.addColor(cell, this.gridBackgroundColor);
     },
+
     /**
      * @param {Object} cell - Clicked cell
      * @param {string} cellColorToFill - The Color of the cell to fill
@@ -179,9 +188,11 @@ var pixelGrid = {
         let cellsToBeChecked = [cell];
         let checkCellForColor = [];
         do {
+
             checkCellForColor = cellsToBeChecked[cellsToBeChecked.length - 1];
             cellsToBeChecked.pop();
             if (checkCellForColor.style.backgroundColor === cellColorToFill) {
+
                 if (checkCellForColor.previousSibling !== null) {
                     cellsToBeChecked.push(checkCellForColor.previousSibling); //bottom cell
                 }
@@ -196,7 +207,12 @@ var pixelGrid = {
                 }
                 this.setCellColor(checkCellForColor, this.colorFill, cellColorToFill);
             }
+
+
+
         } while (cellsToBeChecked.length > 0);
+
+
         this.fillCount++;
         return true;
     },
@@ -231,7 +247,7 @@ var pixelGrid = {
         utils.addEventListen(document.querySelector(".boxItems"), "click", utils.toolBar);
         utils.addEventListen(document, "keyup", utils.keyListen);
         utils.addEventListen(document, "mouseleave", utils.clearDrawingVars);
-        setInterval(function() {
+        setInterval(function () {
             pixelGrid.saveGrid();
         }, 60000);
     }
@@ -258,18 +274,23 @@ var utils = {
                  */
             case "touchmove":
                 let touchLocation = e.changedTouches[0];
-                let targetFromPos = document.elementFromPoint(touchLocation.screenX, touchLocation.screenY);
-                if (pixelGrid.multiChange === true) {
-                    pixelGrid.addColor(e.target);
-                }
-                if (pixelGrid.multiDelete === true) {
-                    pixelGrid.resetColor(targetFromPos);
+                let targetFromPos = document.elementFromPoint(touchLocation.clientX, touchLocation.clientY);
+                if (targetFromPos.tagName.toLowerCase() === "td") {
+                    if (pixelGrid.multiChange === true) {
+                        pixelGrid.addColor(targetFromPos);
+                    }
+                    if (pixelGrid.multiDelete === true) {
+                        pixelGrid.resetColor(targetFromPos);
+                    }
                 }
                 break;
                 /**
                  * @description Detects touch end and resets variables
                  */
             case "touchend":
+                pixelGrid.multiChange = false;
+                pixelGrid.multiDelete = false;
+                pixelGrid.colorCount++;
                 break;
                 /**
                  * @description Detects mouse click and adds or removes color
@@ -332,11 +353,11 @@ var utils = {
      */
     addEventListen(el, event, func) {
         if (el.addEventListener) {
-            el.addEventListener(event, function(e) {
+            el.addEventListener(event, function (e) {
                 func(e);
             }, false);
         } else if (el.attachEvent) {
-            el.attachEvent("on" + event, function(e) {
+            el.attachEvent("on" + event, function (e) {
                 func(e);
             });
         }
@@ -384,7 +405,7 @@ var utils = {
     clearModes(modeName) {
         let pixelModes = ["fillMode", "magicMode", "eraserMode"];
         let modesID = ["fill", "magic", "eraser"];
-        modesID.forEach(function(mode, index) { //loops left over modes
+        modesID.forEach(function (mode, index) { //loops left over modes
             if (mode !== modeName) {
                 pixelGrid[pixelModes[index]] = false; //sets them to false
                 document.getElementById(mode).classList.remove("active"); //removes left over modes active class
@@ -496,7 +517,7 @@ var utils = {
     gridToImage() {
         pixelGrid.saveGrid();
         document.querySelectorAll("tr, td").forEach(element => element.style.border = "none");
-        html2canvas(pixelGrid.tableContent).then(function(canvas) {
+        html2canvas(pixelGrid.tableContent).then(function (canvas) {
             let img = canvas.toDataURL("image/png");
             document.querySelectorAll("tr, td").forEach(element => element.style.border = "1px solid black");
             let a = document.createElement("a");
@@ -507,7 +528,8 @@ var utils = {
         });
     }
 };
-utils.addEventListen(document.querySelector(".toolBox"), "click", function(e) {
+
+utils.addEventListen(document.querySelector(".toolBox"), "click", function (e) {
     if (!e.target.classList.contains("item") && !e.target.classList.contains("boxItems") && !e.target.classList.contains("fa") && e.target.tagName !== 'IMG' && e.target.tagName !== 'SPAN') {
         if (document.querySelector(".boxItems").classList.contains("hideBox")) {
             document.querySelector(".boxItems").classList.remove("hideBox");
@@ -521,16 +543,16 @@ utils.addEventListen(document.querySelector(".toolBox"), "click", function(e) {
 /**
  * @description Load saved table data on button click
  */
-utils.addEventListen(document.getElementById("hasSaved"), "click", function() {
+utils.addEventListen(document.getElementById("hasSaved"), "click", function () {
     document.querySelector(".loadingScreen").style.display = "flex";
-    setTimeout(function() {
+    setTimeout(function () {
         pixelGrid.loadSave();
     }, 50);
 });
 /**
  * @description Re-shows main menu boxes
  */
-utils.addEventListen(document.getElementById("mainMenu"), "click", function() {
+utils.addEventListen(document.getElementById("mainMenu"), "click", function () {
     document.querySelectorAll(".innerBox")[0].classList.remove("animate-out-left");
     document.querySelectorAll(".innerBox")[1].classList.remove("animate-out-right");
     document.querySelectorAll(".innerBox")[2].classList.remove("animate-out-left");
@@ -543,11 +565,12 @@ utils.addEventListen(document.getElementById("mainMenu"), "click", function() {
 /**
  * @description Animate main menu boxes and creates grid
  */
-utils.addEventListen(document.getElementById("sizePicker"), "submit", function(e) {
+utils.addEventListen(document.getElementById("sizePicker"), "submit", function (e) {
     e.preventDefault();
     document.querySelectorAll(".innerBox")[0].classList.add("animate-out-left");
     document.querySelectorAll(".innerBox")[1].classList.add("animate-out-right");
     document.querySelectorAll(".innerBox")[2].classList.add("animate-out-left");
+
     if (pixelGrid.checkSave()) {
         document.querySelectorAll(".innerBox")[3].classList.add("animate-out-left");
     }
@@ -560,7 +583,7 @@ utils.addEventListen(document.getElementById("sizePicker"), "submit", function(e
 /**
  * @description Changes max grid size and sets max size in inputs on window resize
  */
-utils.addEventListen(window, "resize", function() {
+utils.addEventListen(window, "resize", function () {
     document.getElementById("input_width").value = Math.floor(window.innerWidth / 20);
     document.getElementById("input_height").value = Math.floor(window.innerHeight / 20) - 1;
     document.getElementById("input_width").setAttribute("max", Math.floor(window.innerWidth / 20));
@@ -570,13 +593,13 @@ utils.addEventListen(window, "resize", function() {
 /**
  * @description Shows overlay when orientation changes.
  */
-utils.addEventListen(window, "orientationchange", function() {
+utils.addEventListen(window, "orientationchange", function () {
     document.querySelector(".rotateDevice").classList.toggle("hide");
 }, false);
 /**
  * @description Initializes data when page is loaded
  */
-utils.addEventListen(document, 'DOMContentLoaded', function() {
+utils.addEventListen(document, 'DOMContentLoaded', function () {
     if (pixelGrid.checkSave()) {
         document.getElementById("hasSaved").style.display = "block";
     }
