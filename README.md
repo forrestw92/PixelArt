@@ -21,5 +21,4 @@ Must use icon bar for other features.
 
 ## Built With
 * [jQuery](https://jquery.com/) - Work less, do more!
-* [FitText](https://github.com/davatron5000/FitText.js) - Responsive header font
 * [html2canvas](https://html2canvas.hertzen.com/) - Generates a canvas from html
