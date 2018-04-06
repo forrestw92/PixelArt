@@ -61,7 +61,7 @@ var pixelGrid = {
 	 * @description Store table data into localStorage
 	 */
 	saveGrid() {
-		if (typeof (Storage) !== "undefined") {
+		if (typeof (Storage) !== "undefined" && this.coloredCellsInfo.length !== 0) {
 			localStorage.setItem("grid-info", null);
 			localStorage.setItem("grid-cells-info", null);
 			let cellInfo = [];
@@ -388,7 +388,6 @@ $(".boxItems").on("click", ".item", function (e) {
 			pixelGrid.redoCellChange();
 			break;
 		case "save-data":
-			console.log("pixelGrid.saveGrid();")
 			pixelGrid.saveGrid();
 			break;
 	}

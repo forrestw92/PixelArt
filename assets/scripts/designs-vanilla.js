@@ -68,7 +68,7 @@ var pixelGrid = {
 	 * @description Store table data into localStorage
 	 */
 	saveGrid() {
-		if (typeof (Storage) !== "undefined") {
+		if (typeof (Storage) !== "undefined" && this.coloredCellsInfo.length !== 0) {
 			localStorage.setItem("grid-info", "");
 			localStorage.setItem("grid-cells-info", "");
 			let cellInfo = [];
