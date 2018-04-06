@@ -20,7 +20,7 @@ var pixelGrid = {
      * @description Checks if browser supports Storage
      */
     checkSave() {
-        if (typeof(Storage) !== "undefined") {
+        if (typeof (Storage) !== "undefined") {
             if (localStorage.getItem("grid-cells-info") !== undefined) {
                 return true;
             }
@@ -31,7 +31,7 @@ var pixelGrid = {
     /**
      * @description Load save table data from localStorage and update table.
      */
-    loadSave: function() {
+    loadSave: function () {
         let gridInfo = $.parseJSON(localStorage.getItem("grid-info"));
         let json = $.parseJSON(localStorage.getItem("grid-cells-info"));
         const $this = this;
@@ -42,10 +42,10 @@ var pixelGrid = {
             $this.makeGrid(true);
         }
         let total = json.length;
-        $.map(json, function(obj, index) {
+        $.map(json, function (obj, index) {
             let color = "";
             let cell = "";
-            setTimeout(function() {
+            setTimeout(function () {
                 cell = $(`tr:nth-child(${obj.row}) td:nth-child(${obj.col})`);
                 color = obj.color;
                 $this.addColor(cell, color);
@@ -61,7 +61,7 @@ var pixelGrid = {
      * @description Store table data into localStorage
      */
     saveGrid() {
-        if (typeof(Storage) !== "undefined") {
+        if (typeof (Storage) !== "undefined") {
             localStorage.setItem("grid-info", "");
             localStorage.setItem("grid-cells-info", "");
             let cellInfo = [];
@@ -70,7 +70,7 @@ var pixelGrid = {
                 height: this.height,
                 gridBackgroundColor: this.gridBackgroundColor
             };
-            $.map(this.coloredCellsInfo, function(obj, idx) {
+            $.map(this.coloredCellsInfo, function (obj, idx) {
                 cellInfo.push({
                     row: $(obj.cell).parent("tr").index() + 1,
                     col: $(obj.cell).index() + 1,
@@ -251,17 +251,17 @@ var pixelGrid = {
         }
         $("#eyedropper").css("backgroundColor", $("#colorPicker").val());
         $(".grid").removeClass("hide");
-        setInterval(function() {
+        setInterval(function () {
             pixelGrid.saveGrid();
         }, 60000);
     }
 }
 var utils = {
     toolBoxFix() {
-        let toolBarMaxHeight = $(window).height() - $("#pixel_canvas").height() - 1;
-        $(".toolBox").css("height",toolBarMaxHeight + "px");
+        let toolBarMaxHeight = $(window).height() - $("#pixel_canvas").height() - 4;
+        $(".toolBox").css("height", toolBarMaxHeight + "px");
         $(".toolBox").css("line-height", toolBarMaxHeight + "px");
-         
+
     },
     rgbToHex(rgbStr) {
         let rgb = rgbStr.replace("rgb(", "").replace(")", "").split(",");
@@ -294,7 +294,7 @@ var utils = {
     clearModes(modeName) {
         let pixelModes = ["fillMode", "magicMode", "eraserMode"];
         let modesID = ["fill", "magic", "eraser"];
-        modesID.forEach(function(mode, index) { //loops left over modes
+        modesID.forEach(function (mode, index) { //loops left over modes
             if (mode !== modeName) {
                 pixelGrid[pixelModes[index]] = false; //sets them to false
                 $("#" + mode).removeClass("active"); //removes left over modes active class
@@ -314,7 +314,7 @@ var utils = {
         pixelGrid.saveGrid();
         pixelGrid.removeBorders();
         $("#gridImg").removeClass("hide");
-        html2canvas($(pixelGrid.tableContent)[0]).then(function(canvas) {
+        html2canvas($(pixelGrid.tableContent)[0]).then(function (canvas) {
             let img = canvas.toDataURL("image/png");
             pixelGrid.addBorders();
             let a = $("<a>").attr("href", img).attr("download", "pixel-art.png").appendTo("body");
@@ -352,7 +352,7 @@ var utils = {
         }
     }
 }
-$(".boxItems").on("click", ".item", function(e) {
+$(".boxItems").on("click", ".item", function (e) {
     let id = $(this).attr("id");
     switch (id) {
         case "pencil":
@@ -392,7 +392,7 @@ $(pixelGrid.tableContent).on({
     /**
      * @description Detects touch of cell and adds or removes color
      */
-    touchstart: function(e) {
+    touchstart: function (e) {
         e.preventDefault();
         if (pixelGrid.eraserMode === true) {
             pixelGrid.multiDelete = true;
@@ -406,7 +406,7 @@ $(pixelGrid.tableContent).on({
     /**
      * @description Detects touch move and finds element moved over and adds or removes color
      */
-    touchmove: function(e) {
+    touchmove: function (e) {
         let touchLocation = e.originalEvent.changedTouches[0];
         let targetFromPos = document.elementFromPoint(touchLocation.clientX, touchLocation.clientY);
         if ($(targetFromPos).is("td")) {
@@ -419,7 +419,7 @@ $(pixelGrid.tableContent).on({
     /**
      * @description Detects touch end and resets variables
      */
-    touchend: function() {
+    touchend: function () {
         pixelGrid.multiChange = false;
         pixelGrid.multiDelete = false;
         pixelGrid.colorCount++;
@@ -427,7 +427,7 @@ $(pixelGrid.tableContent).on({
     /**
      * @description Detects mouse click and adds or removes color
      */
-    mousedown: function(e) {
+    mousedown: function (e) {
         e.preventDefault();
         mouseDown = true;
         if (e.which === 1) {
@@ -447,19 +447,19 @@ $(pixelGrid.tableContent).on({
     /**
      * @description Detects mouse click up resets variables
      */
-    mouseup: function(e) {
+    mouseup: function (e) {
         mouseDown = false;
         pixelGrid.multiChange = false;
         pixelGrid.multiDelete = false;
         pixelGrid.colorCount++;
     },
-    mouseleave: function(e) {
+    mouseleave: function (e) {
         $(this).css("background-image", "");
     },
     /**
      * @description Detects mouse move and adds or removes color from cells moved over
      */
-    mouseenter: function(e) {
+    mouseenter: function (e) {
         if (pixelGrid.multiChange === true) pixelGrid.addColor($(this));
         if (pixelGrid.multiDelete === true) pixelGrid.removeColor($(this));
         if (pixelGrid.eraserMode) {
@@ -475,7 +475,7 @@ $(pixelGrid.tableContent).on({
 /**
  * @description Assigns hotkeys for Magic Mode,Eraser Mode,Color Picker,Fill Mode
  */
-$(document).on("keyup", function(e) {
+$(document).on("keyup", function (e) {
     let key = e.which || e.keyCode;
     if (key === 67) $("#colorPicker").click();
     if (key === 69) utils.toggleMode("eraser");
@@ -483,15 +483,15 @@ $(document).on("keyup", function(e) {
     if (key === 16) utils.toggleMode("magic");
 });
 $(pixelGrid.tableContent).on({
-    contextmenu: function() {
+    contextmenu: function () {
         return false;
     },
-    mouseleave: function() {
+    mouseleave: function () {
         pixelGrid.multiChange = false;
         pixelGrid.multiDelete = false;
     }
 });
-$(".toolBox").on("click", function(e) {
+$(".toolBox").on("click", function (e) {
     if (!e.target.classList.contains("item") && !e.target.classList.contains("boxItems") && !e.target.classList.contains("fa") && e.target.tagName !== 'IMG' && e.target.tagName !== 'SPAN') {
         if ($(".boxItems").hasClass("hideBox")) {
             $(".boxItems").removeClass("hideBox");
@@ -503,13 +503,13 @@ $(".toolBox").on("click", function(e) {
         }
     }
 })
-$("#hasSaved").on("click", function() {
+$("#hasSaved").on("click", function () {
     $(".loadingScreen").css("display", "flex");
-    setTimeout(function() {
+    setTimeout(function () {
         pixelGrid.loadSave();
     }, 50);
 })
-$("#mainMenu").on("click", function() {
+$("#mainMenu").on("click", function () {
     $(".innerBox:nth-child(1)").removeClass("animate-out-left");
     $(".innerBox:nth-child(2)").removeClass("animate-out-right");
     $(".innerBox:nth-child(3)").removeClass("animate-out-left");
@@ -522,7 +522,7 @@ $("#mainMenu").on("click", function() {
 /**
  * @description Make table on form submit
  */
-$("#sizePicker").on("submit", function(e) {
+$("#sizePicker").on("submit", function (e) {
     e.preventDefault();
     $(".innerBox:nth-child(1)").addClass("animate-out-left");
     $(".innerBox:nth-child(2)").addClass("animate-out-right");
@@ -531,25 +531,25 @@ $("#sizePicker").on("submit", function(e) {
         $(".innerBox:nth-child(4)").addClass("animate-out-right");
     }
     $('#header').text("Let's Make Art").fadeOut(1500);
-    setTimeout(function() {
+    setTimeout(function () {
         pixelGrid.makeGrid();
     }, 1000);
 });
-$(window).resize(function() {
+$(window).resize(function () {
     $("#input_width").val(Math.floor($(window).width() / 20));
     $("#input_height").val(Math.floor($(window).height() / 20) - 1);
     $("#input_width").attr("max", Math.floor($(window).width() / 20));
     $("#input_height").attr("max", Math.floor($(window).height() / 20) - 1);
     utils.toolBoxFix();
 });
-$(window).on("orientationchange", function() {
+$(window).on("orientationchange", function () {
     $(".rotateDevice").toggleClass("hide");
 })
-$(document).mouseleave(function() {
+$(document).mouseleave(function () {
     pixelGrid.multiChange = false;
     pixelGrid.multiDelete = false;
 });
-$(document).ready(function() {
+$(document).ready(function () {
     if (pixelGrid.checkSave()) {
         $("#hasSaved").css("display", "block");
         //pixelGrid.loadSave()
@@ -565,13 +565,13 @@ $(document).ready(function() {
         showSelectionPalette: true,
         selectionPalette: ["red", "green", "blue"],
         maxSelectionSize: 5,
-        move: function(color) {
+        move: function (color) {
             $(this).css("backgroundColor", color.toRgbString());
             $(this).css("color", utils.getHexContrast(color.toHexString()));
             $(this).addClass("active");
             pixelGrid.color = color.toRgbString();
         },
-        change: function(color) {
+        change: function (color) {
             $(this).css("backgroundColor", color.toRgbString());
             $(this).css("color", utils.getHexContrast(color.toHexString()));
             $(this).addClass("active");
@@ -589,13 +589,13 @@ $(document).ready(function() {
         showSelectionPalette: true,
         selectionPalette: ["red", "green", "blue"],
         maxSelectionSize: 5,
-        move: function(color) {
+        move: function (color) {
             $(this).css("backgroundColor", color.toRgbString());
             $(this).css("color", utils.getHexContrast(color.toHexString()));
             $(this).children("img").attr("src", utils.getHexContrast(color.toHexString()) === "#ffffff" ? "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACMAAAAjCAYAAAAe2bNZAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAANZSURBVFhH7ZdNSFRhFIbtRzFKpCKhRVGQuahoUWRlZiERWGQQLQokspBaGCht2rsr7IcIbNEuqE2KG8tFuQmiQNy0LCgjJKLMzP7HnvPd945zx7kz986M0MIHXr7vO+c95zs4c2ecknkKZXp6elEikViP9qMmzsfROqXnHi7djLrQM/STywMQ+8SyTfa5gUtq0COU8K4NB8tntF2lxYXGx9CU7nJw/ogGUTd6onAq48R3qEVxoGEtSr4c7O2v08y2VPkW9Ee5v+ih7YUNtNM1KgY0HLKudhFLm8IOYumDtCrebTFhA+12BYVAo2U0cu8RlvsKOzhnHMSH81XLGey/oDql8oMGG9XPGnYpnHMQH+LpA7WjFUrHg8IK9EvNnrIsQKXsr6E3KHQQw/zmtXofzpPI3vSrZYsORb3qY416WMqVslyVtqHgnzWQQWwCdbJdLGtuKNhAwbjrAJxfoQtopSw5ocwGuu51CEL8OctaWXNDQerT4SBmL9Ew6kEd6ARqRFtRMxpBr9Fp60GJDXTDqw5C3D6zDrjLsoG3DaP/RNkA7j0UFfz2RnffV6zZBvqODrpLM0HyMEodpBWtQufQA/TBdcoBvnq19Ae66WWCEJ9CDbLOQK6cxDuZjLDHtwrVYzvKegZdQo+tzmA/wlImu4NztoFGWZbL6kHwkJd2htsKR4IS+9fC/qon0VKFA+CxgW65C9Igflc2DwL22DnYNypcNGhbRt8+74bZkKuV1Q3TrrglmhQuCrTMOohB/p7sbphaxS3Rr3DB0C7nIAYe+6Re4hfZazrspVzysksUAG0Cg7B/j/rRW4UCEN+lUvfX2UIs9dP3ilKxoTzTIDXKLWRvX77fvKwHZ/eBmYTYHoITXjq/gSgLHSQVYkdkcXDuVGoG4jbQV88SbyDskQbxITcgq3k7FA5Coh5NyhdpIGyxBjHIn5Ld/OcVng3JvSj5urIPHYh07EEMPNUqsZoWhTODoQFlHYhwXoMY+CpUZnXhX5w++PZhTB3oDkul5divQYNeJt4gPvh/qDZaHUb7SZs60G80ipI/8tjGHsSgZgzZA+N+DkUCsz1lY+7mNIi/RNWyxoLyIWr7dIwOhZUUXkQD6AXqRWeJB/5tiAP1dWiTjvP875SU/ANPe9xthZlndAAAAABJRU5ErkJggg==" : "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACMAAAAjCAYAAAAe2bNZAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAKwSURBVFhH7ddLyA1hHMfx1zVCQpQFUS4LZEHu1ySFULKgJJfEgiIbeztyS4qFnWKDbFwW2ChRsrGkXJIk9/v9++X9n5533nPmzJn3vLLwq0/eZp6Z83PmeWbOtPxPE9INIzEfi7EKI/DXMh57cAOf8TPjBSahUzMWl/AD2QJZLzEZnZKV+ID0A5/jMvbjauu21CtMQVMzFenl8NtZjh4wa/EN7vuOi61/R6FpaFquIT5osxuSZItsgPHbSgvNQIfTFzFHTrshSa0ikQOIQq8xEx3KGMQJXUGRekUi2ULbMBCl0g9f4MmuowucKwfxAHlFjOMdG4X0Dl7GoWg4ZxEnOoZeiAxp/Tcv1QrpDXaiOwpnFJyEcZJ72I5BKBoLHUJaJtzEcBROujqCl+g2/LZ2YDUWYCJc+ndwH+thLHQY2fPIe9ZC1I3LOVaUBWIOFeVEj+dVXqGPWISaWYq0iJN1MLbgDJ4he9JqZiNioSOoNs67/Fy0ixP1MRxkoVqrxknsh63ARuzGFcQHeLl6Ik1eoUcYgDZZghhw3A0NxJ8Wfqtr0McNVWKho0iLhJNoE5dd7HRiNjt+W+eQlkj5TKzEu2Xs8IdTM1OviE6hEpvFjvNuaFKKFJF36t74Ha+p95HYuRcdTbbIE/gffZhsS01HJROQ3n33oWyqFfHXo+kKH77vEfsVN8xKZsHnSAwoUyivSJpliDFyEbWLhd4iBjVSqGiRyAXEWB8zVeONzUkVA4sUarSIWYcYv9UNtTIH6XXNK1SmiBmNOMZ5lBufHfUKlS1i/EEXx+U+OCPzkBY6gf4ww+ArTOxrpEjkEzy28HG+0qaFvsKHXPqSV6aIeQoXTLwOFYqrzAPjw1N34fUvE1+PvMwNx8uzCy7JW/A38yY4b8rG15pxf/78n38+LS2/AJUMUFYb7b3KAAAAAElFTkSuQmCC");
             pixelGrid.colorFill = color.toRgbString();
         },
-        change: function(color) {
+        change: function (color) {
             $(this).css("backgroundColor", color.toRgbString());
             $(this).css("color", utils.getHexContrast(color.toHexString()));
             $(this).children("img").attr("src", utils.getHexContrast(color.toHexString()) === "#ffffff" ? "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACMAAAAjCAYAAAAe2bNZAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAANZSURBVFhH7ZdNSFRhFIbtRzFKpCKhRVGQuahoUWRlZiERWGQQLQokspBaGCht2rsr7IcIbNEuqE2KG8tFuQmiQNy0LCgjJKLMzP7HnvPd945zx7kz986M0MIHXr7vO+c95zs4c2ecknkKZXp6elEikViP9qMmzsfROqXnHi7djLrQM/STywMQ+8SyTfa5gUtq0COU8K4NB8tntF2lxYXGx9CU7nJw/ogGUTd6onAq48R3qEVxoGEtSr4c7O2v08y2VPkW9Ee5v+ih7YUNtNM1KgY0HLKudhFLm8IOYumDtCrebTFhA+12BYVAo2U0cu8RlvsKOzhnHMSH81XLGey/oDql8oMGG9XPGnYpnHMQH+LpA7WjFUrHg8IK9EvNnrIsQKXsr6E3KHQQw/zmtXofzpPI3vSrZYsORb3qY416WMqVslyVtqHgnzWQQWwCdbJdLGtuKNhAwbjrAJxfoQtopSw5ocwGuu51CEL8OctaWXNDQerT4SBmL9Ew6kEd6ARqRFtRMxpBr9Fp60GJDXTDqw5C3D6zDrjLsoG3DaP/RNkA7j0UFfz2RnffV6zZBvqODrpLM0HyMEodpBWtQufQA/TBdcoBvnq19Ae66WWCEJ9CDbLOQK6cxDuZjLDHtwrVYzvKegZdQo+tzmA/wlImu4NztoFGWZbL6kHwkJd2htsKR4IS+9fC/qon0VKFA+CxgW65C9Igflc2DwL22DnYNypcNGhbRt8+74bZkKuV1Q3TrrglmhQuCrTMOohB/p7sbphaxS3Rr3DB0C7nIAYe+6Re4hfZazrspVzysksUAG0Cg7B/j/rRW4UCEN+lUvfX2UIs9dP3ilKxoTzTIDXKLWRvX77fvKwHZ/eBmYTYHoITXjq/gSgLHSQVYkdkcXDuVGoG4jbQV88SbyDskQbxITcgq3k7FA5Coh5NyhdpIGyxBjHIn5Ld/OcVng3JvSj5urIPHYh07EEMPNUqsZoWhTODoQFlHYhwXoMY+CpUZnXhX5w++PZhTB3oDkul5divQYNeJt4gPvh/qDZaHUb7SZs60G80ipI/8tjGHsSgZgzZA+N+DkUCsz1lY+7mNIi/RNWyxoLyIWr7dIwOhZUUXkQD6AXqRWeJB/5tiAP1dWiTjvP875SU/ANPe9xthZlndAAAAABJRU5ErkJggg==" : "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACMAAAAjCAYAAAAe2bNZAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAKwSURBVFhH7ddLyA1hHMfx1zVCQpQFUS4LZEHu1ySFULKgJJfEgiIbeztyS4qFnWKDbFwW2ChRsrGkXJIk9/v9++X9n5533nPmzJn3vLLwq0/eZp6Z83PmeWbOtPxPE9INIzEfi7EKI/DXMh57cAOf8TPjBSahUzMWl/AD2QJZLzEZnZKV+ID0A5/jMvbjauu21CtMQVMzFenl8NtZjh4wa/EN7vuOi61/R6FpaFquIT5osxuSZItsgPHbSgvNQIfTFzFHTrshSa0ikQOIQq8xEx3KGMQJXUGRekUi2ULbMBCl0g9f4MmuowucKwfxAHlFjOMdG4X0Dl7GoWg4ZxEnOoZeiAxp/Tcv1QrpDXaiOwpnFJyEcZJ72I5BKBoLHUJaJtzEcBROujqCl+g2/LZ2YDUWYCJc+ndwH+thLHQY2fPIe9ZC1I3LOVaUBWIOFeVEj+dVXqGPWISaWYq0iJN1MLbgDJ4he9JqZiNioSOoNs67/Fy0ixP1MRxkoVqrxknsh63ARuzGFcQHeLl6Ik1eoUcYgDZZghhw3A0NxJ8Wfqtr0McNVWKho0iLhJNoE5dd7HRiNjt+W+eQlkj5TKzEu2Xs8IdTM1OviE6hEpvFjvNuaFKKFJF36t74Ha+p95HYuRcdTbbIE/gffZhsS01HJROQ3n33oWyqFfHXo+kKH77vEfsVN8xKZsHnSAwoUyivSJpliDFyEbWLhd4iBjVSqGiRyAXEWB8zVeONzUkVA4sUarSIWYcYv9UNtTIH6XXNK1SmiBmNOMZ5lBufHfUKlS1i/EEXx+U+OCPzkBY6gf4ww+ArTOxrpEjkEzy28HG+0qaFvsKHXPqSV6aIeQoXTLwOFYqrzAPjw1N34fUvE1+PvMwNx8uzCy7JW/A38yY4b8rG15pxf/78n38+LS2/AJUMUFYb7b3KAAAAAElFTkSuQmCC");
@@ -607,13 +607,13 @@ $(document).ready(function() {
         color: "#ffffff",
         preferredFormat: "rgb",
         showInput: true,
-        move: function(color) {
+        move: function (color) {
             $(this).css("backgroundColor", color.toRgbString());
             $(this).css("color", utils.getHexContrast(color.toHexString()));
             $(this).text(color.toHexString());
             pixelGrid.gridBackgroundColor = color.toRgbString();
         },
-        change: function(color) {
+        change: function (color) {
             $(this).css("backgroundColor", color.toRgbString());
             $(this).css("color", utils.getHexContrast(color.toHexString()));
             $(this).text(color.toHexString());

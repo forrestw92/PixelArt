@@ -366,7 +366,7 @@ var utils = {
      * @description Fixed toolBar button height and centers text
      */
     toolBoxFix() {
-        let toolBarMaxHeight = window.innerHeight - document.getElementById("pixel_canvas").offsetHeight + 1;
+        let toolBarMaxHeight = window.innerHeight - document.getElementById("pixel_canvas").offsetHeight - 4;
         if (toolBarMaxHeight > 50) {
             return false;
         }
