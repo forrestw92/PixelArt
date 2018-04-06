@@ -21,7 +21,7 @@ var pixelGrid = {
 	 */
 	checkSave() {
 		if (typeof (Storage) !== "undefined") {
-			if (localStorage.getItem("grid-cells-info") !== undefined && localStorage.getItem("grid-cells-info") !== null) {
+			if (localStorage.getItem("grid-cells-info") !== undefined && localStorage.getItem("grid-cells-info") !== null && localStorage.getItem("grid-cells-info") !== "") {
 				return true;
 			}
 			return false;
@@ -62,8 +62,8 @@ var pixelGrid = {
 	 */
 	saveGrid() {
 		if (typeof (Storage) !== "undefined") {
-			localStorage.setItem("grid-info", "");
-			localStorage.setItem("grid-cells-info", "");
+			localStorage.setItem("grid-info", null);
+			localStorage.setItem("grid-cells-info", null);
 			let cellInfo = [];
 			let gridInfo = {
 				width: this.width,
@@ -77,8 +77,10 @@ var pixelGrid = {
 					color: obj.color,
 				});
 			});
-			localStorage.setItem("grid-info", JSON.stringify(gridInfo));
-			localStorage.setItem("grid-cells-info", JSON.stringify(cellInfo));
+			if (cellInfo.length !== 0 || cellInfo !== null && cellInfo !== undefined) {
+				localStorage.setItem("grid-info", JSON.stringify(gridInfo));
+				localStorage.setItem("grid-cells-info", JSON.stringify(cellInfo));
+			}
 		}
 	},
 	checkIfCellStored(cell, color) {
@@ -297,10 +299,10 @@ var utils = {
 	clearModes(modeName) {
 		let pixelModes = ["fillMode", "magicMode", "eraserMode"];
 		let modesID = ["fill", "magic", "eraser"];
-		modesID.forEach(function (mode, index) { 
+		modesID.forEach(function (mode, index) {
 			if (mode !== modeName) {
 				pixelGrid[pixelModes[index]] = false;
-				$("#" + mode).removeClass("active"); 
+				$("#" + mode).removeClass("active");
 			}
 		});
 	},
@@ -377,6 +379,8 @@ $(".boxItems").on("click", ".item", function (e) {
 			break;
 		case "refresh":
 			if (confirm("Are you sure you want to refresh grid?")) {
+				localStorage.setItem("grid-info", "");
+				localStorage.setItem("grid-cells-info", "");
 				pixelGrid.makeGrid();
 			}
 			break;
