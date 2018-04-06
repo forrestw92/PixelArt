@@ -21,7 +21,7 @@ var pixelGrid = {
      */
     checkSave() {
         if (typeof (Storage) !== "undefined") {
-            if (localStorage.getItem("grid-cells-info") !== undefined) {
+            if (localStorage.getItem("grid-cells-info") !== undefined && localStorage.getItem("grid-cells-info") !== null) {
                 return true;
             }
             return false;
