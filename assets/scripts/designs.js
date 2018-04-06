@@ -260,7 +260,6 @@ var utils = {
 	toolBoxFix() {
 		let toolBarMaxHeight = $(window).height() - $("#pixel_canvas").height() - 4;
 		if (toolBarMaxHeight > 50) {
-			console.log("HII")
 			return false;
 		}
 		$(".toolBox").css("height", toolBarMaxHeight + "px");
@@ -298,10 +297,10 @@ var utils = {
 	clearModes(modeName) {
 		let pixelModes = ["fillMode", "magicMode", "eraserMode"];
 		let modesID = ["fill", "magic", "eraser"];
-		modesID.forEach(function (mode, index) { //loops left over modes
+		modesID.forEach(function (mode, index) { 
 			if (mode !== modeName) {
-				pixelGrid[pixelModes[index]] = false; //sets them to false
-				$("#" + mode).removeClass("active"); //removes left over modes active class
+				pixelGrid[pixelModes[index]] = false;
+				$("#" + mode).removeClass("active"); 
 			}
 		});
 	},
@@ -556,7 +555,6 @@ $(document).mouseleave(function () {
 $(document).ready(function () {
 	if (pixelGrid.checkSave()) {
 		$("#hasSaved").css("display", "block");
-		//pixelGrid.loadSave()
 	}
 	$("#colorPicker").spectrum({
 		preferredFormat: "rgb",
