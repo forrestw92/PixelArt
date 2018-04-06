@@ -372,6 +372,7 @@ var utils = {
         }
         document.querySelector(".toolBox").style.height = toolBarMaxHeight + "px";
         document.querySelector(".toolBox").style.lineHeight = toolBarMaxHeight + "px";
+		console.log("HIII");
     },
     rgbToHex(rgbStr) {
         let rgb = rgbStr.replace("rgb(", "").replace(")", "").split(",");
